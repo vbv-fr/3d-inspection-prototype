@@ -99,6 +99,11 @@ input.sl{width:100%;accent-color:var(--primary);margin:0 0 6px}
 .toast3{position:absolute;right:340px;bottom:70px;background:#111;color:#fff;padding:8px 14px;border-radius:7px;font-size:13px;z-index:50}
 .prog{height:6px;border-radius:3px;background:#ececec;overflow:hidden;margin-top:6px}.prog i{display:block;height:100%;background:var(--primary);width:0}
 #modeSwitch{display:inline-flex}
+.cen{overflow-y:auto}
+.panes{min-height:300px}
+.pane{min-height:140px}
+@media (max-width:1180px){.body{grid-template-columns:minmax(0,1fr) 280px}.tools{display:none}}
+@media (max-width:860px){.body{display:block;overflow-y:auto}.cen{overflow:visible}.panes{height:560px}.panel{border-left:0;border-top:1px solid var(--line)}.pscroll{overflow:visible}.bar3{padding:6px 12px}}
 </style>
 </head>
 <body>
