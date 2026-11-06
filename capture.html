@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capture Configuration</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="edge.css">
+<style>
+.switch-wrap{position:fixed;left:290px;bottom:14px;z-index:140}
+.ip.n{width:70px}
+.t td{vertical-align:middle}
+.nw{white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="switch-wrap" id="modeSwitch"><button class="b ghost sm" id="mToday">Today</button> <button class="b ghost sm" id="mAfter">After change</button></div>
+<script src="chrome.js"></script>
+<script>
+var SLUG = '3d-inspection';
+var DEFAULTS = { instanceName: 'Roof Weld 3D', team: 'Quality', variant: 'Variant A', created: false, captures: [{ id: 'c1', name: 'Capture 1' }, { id: 'c2', name: 'Capture 2' }], cameraIp: '192.168.1.40', cameraName: 'Camera 1', scanCfg: {} };
+var query = new URLSearchParams(location.search);
+var MODE = query.get('mode') === 'today' ? 'today' : 'after';
+var inShell = false;
+try { inShell = window.self !== window.top; } catch (e) { inShell = true; }
+if (inShell) document.getElementById('modeSwitch').hidden = true;
+var KEY = SLUG + '-state';
+function readShared() { var saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {} return Object.assign({}, DEFAULTS, saved); }
+function writeShared(change) { var next = Object.assign(readShared(), change); try { localStorage.setItem(KEY, JSON.stringify(next)); } catch (e) {} return next; }
+function goToStep(id) { if (inShell) parent.postMessage({ type: SLUG + '-nav', to: id }, '*'); }
+window.addEventListener('storage', function (e) { if (e.key === KEY || e.key === null) render(); });
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+function t(heads, rows) { return '<div class="tw"><table class="t"><thead><tr>' + heads.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' + rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>'; }
+function selBox(opts, v) { return '<select class="ip">' + opts.map(function (o) { return '<option' + (o === v ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>'; }
+var HDR = ['No HDR', 'Auto HDR', 'Manual HDR'];
+function scanRow(st, c) {
+  var d = Object.assign({ lines: 5000, rate: 900, speed: 32, z0: -5, z1: 15, trig: 'Software', ref: true, scatter: false }, (st.scanCfg || {})[c.id] || {});
+  var yspace = d.speed / d.rate;
+  return ['<span class="nw">' + esc(c.name) + '</span>',
+    '<input class="ip n" type="number" data-sc="' + c.id + '.lines" value="' + d.lines + '" aria-label="Lines per scan">',
+    '<input class="ip n" type="number" data-sc="' + c.id + '.rate" value="' + d.rate + '" aria-label="Line rate">',
+    '<input class="ip n" type="number" data-sc="' + c.id + '.speed" value="' + d.speed + '" aria-label="Part speed">',
+    '<span class="nw">' + yspace.toFixed(3) + ' mm</span>', '<span class="nw">' + (d.lines * yspace).toFixed(0) + ' mm</span>', '<span class="nw">' + (d.lines / d.rate).toFixed(1) + ' s</span>',
+    '<span class="nw"><input class="ip" style="width:52px" type="number" value="' + d.z0 + '" aria-label="Z from"> to <input class="ip" style="width:52px" type="number" value="' + d.z1 + '" aria-label="Z to"></span>',
+    selBox(['Software', 'Line', 'Encoder'], d.trig),
+    '<label class="ck nw"><input type="checkbox" checked disabled>Range</label><br><label class="ck nw"><input type="checkbox"' + (d.ref ? ' checked' : '') + '>Reference</label><br><label class="ck nw"><input type="checkbox"' + (d.scatter ? ' checked' : '') + '>Scatter</label>'];
+}
+function render() {
+  var st = readShared(), inner, instLabel;
+  if (MODE === 'today') {
+    instLabel = 'Line 1 Assembly - Line-A - Plant-2';
+    inner = '<h3 class="sec" style="margin-top:0">Camera IP Configuration</h3>' + t(['Camera Name', 'Camera Type', 'Protocol', 'Make', 'Trigger Type', 'Camera IP'], [['Camera 1', selBox(['Area Scan', 'CCTV', 'Custom'], 'Area Scan'), 'GiGe', selBox(['Hik Robot', 'Balluff'], 'Hik Robot'), selBox(['Software', 'Hardware', 'Streaming'], 'Software'), '<input class="ip" value="192.168.1.21">']]) +
+      '<h3 class="sec">Configuration Parameters</h3>' + t(['Variant', 'Camera IP', 'Capture', 'HDR Type*', 'Exposure Values*', 'Use INI/MFS File', 'Pixel Format', 'File Name', 'Actions'], [['Variant A', '192.168.1.21', 'Top Capture', selBox(HDR, 'Manual HDR'), '<input class="ip" value="100, 500, 1000" style="width:140px">', '<label class="tog"><input type="checkbox" checked aria-label="Use INI/MFS File"><i></i></label>', '-', 'top_capture.ini', '<button class="b ghost sm">Create</button> <button class="b ghost sm">Upload</button>']]);
+  } else {
+    instLabel = esc(st.instanceName) + ' - Edge - ' + esc(st.team);
+    inner = '<h3 class="sec" style="margin-top:0">Camera IP Configuration</h3>' + t(['Camera Name', 'Camera Type', 'Protocol', 'Make', 'Trigger Type', 'Camera IP'], [[esc(st.cameraName), selBox(['3D Laser Profiler', 'Area Scan', 'CCTV', 'Custom'], '3D Laser Profiler'), 'GiGe', selBox(['Hik Robot'], 'Hik Robot'), selBox(['Software', 'Hardware'], 'Software'), '<input class="ip" value="' + esc(st.cameraIp) + '">']]) +
+      '<h3 class="sec">Configuration Parameters</h3>' + t(['Variant', 'Camera IP', 'Capture', 'HDR Type*', 'Exposure Values*', 'Use INI/MFS File', 'Pixel Format', 'File Name'], st.captures.map(function (c) { var h = (st.hdrBy || {})[c.id] || 'No HDR'; return [esc(st.variant), esc(st.cameraIp), esc(c.name), '<select class="ip" data-hdr="' + c.id + '">' + HDR.map(function (o) { return '<option' + (o === h ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>', h === 'No HDR' ? '-' : '<input class="ip" value="100, 500, 1000" style="width:140px" aria-label="Exposure Values">', '-', '-', '-']; })) +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin:22px 0 10px"><h3 class="sec" style="margin:0">3D Scan Settings</h3><button class="b ghost sm" data-read="1">Read From Camera</button></div>' + t(['Capture', 'Lines per Scan', 'Line Rate (lines/s)', 'Part Speed (mm/s)', 'Y Spacing', 'Scan Length', 'Scan Time', 'Z Range (mm)', 'Trigger Source', 'Saved Images'], st.captures.map(function (c) { return scanRow(st, c); }));
+  }
+  document.getElementById('app').innerHTML = railHtml('ic-capture', false, true) + '<div class="work"><main id="main"><div class="page withfoot"><div class="pagehead"><div class="crumbs"><span class="c">Instances</span><span class="sep">/</span><span class="c">Inferencing Customization</span><span class="sep">/</span><span>Capture Configuration</span></div></div><div style="max-width:420px"><div class="fld"><label>Instances (Instance Name - Project Name - Plant Name)</label><select class="ip"><option>' + instLabel + '</option></select></div></div>' + inner + '</div><div class="foot"><button class="b ghost" disabled title="No changes to reset.">Reset</button><button class="b" id="saveBtn">Save</button></div></main></div>';
+}
+document.addEventListener('input', function (e) {
+  var k = e.target.getAttribute && e.target.getAttribute('data-sc'); if (!k) return;
+  var p = k.split('.'), st = readShared(), sc = st.scanCfg || {}; sc[p[0]] = sc[p[0]] || {}; sc[p[0]][p[1]] = +e.target.value; writeShared({ scanCfg: sc });
+  var cell = e.target; render(); var again = document.querySelector('[data-sc="' + k + '"]'); if (again) { again.focus(); }
+});
+document.addEventListener('change', function (e) {
+  var id = e.target.getAttribute && e.target.getAttribute('data-hdr'); if (!id) return;
+  var st = readShared(), h = st.hdrBy || {}; h[id] = e.target.value; writeShared({ hdrBy: h }); render();
+});
+document.addEventListener('click', function (e) {
+  var t2 = e.target;
+  if (t2.id === 'saveBtn' && MODE === 'after') goToStep('laser');
+  if (t2.id === 'mToday') location.search = '?mode=today';
+  if (t2.id === 'mAfter') location.search = '?mode=after';
+});
+render();
+</script>
+</body>
+</html>

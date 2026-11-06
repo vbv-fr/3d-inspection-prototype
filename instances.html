@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instance Details</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="edge.css">
+<style>
+.drawer .dh{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line);font-size:18px;font-weight:600}
+.drawer .db{flex:1;min-height:0;overflow:auto;padding:16px 20px}
+.drawer .df{display:flex;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--line)}
+.capRow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.capRow .ip{flex:1}
+.switch-wrap{position:fixed;left:290px;bottom:14px;z-index:140}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="switch-wrap" id="modeSwitch"><button class="b ghost sm" id="mToday">Today</button> <button class="b ghost sm" id="mAfter">After change</button></div>
+<script src="chrome.js"></script>
+<script>
+var SLUG = '3d-inspection';
+var DEFAULTS = { instanceName: 'Roof Weld 3D', team: 'Quality', variant: 'Variant A', created: false, captures: [{ id: 'c1', name: 'Capture 1' }, { id: 'c2', name: 'Capture 2' }], cameraIp: '192.168.1.40', cameraName: 'Camera 1' };
+var query = new URLSearchParams(location.search);
+var MODE = query.get('mode') === 'today' ? 'today' : 'after';
+var STATE = query.get('state') || 'default';
+var inShell = false;
+try { inShell = window.self !== window.top; } catch (e) { inShell = true; }
+if (inShell) document.getElementById('modeSwitch').hidden = true;
+var KEY = SLUG + '-state';
+function readShared() { var saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {} return Object.assign({}, DEFAULTS, saved); }
+function writeShared(change) { var next = Object.assign(readShared(), change); try { localStorage.setItem(KEY, JSON.stringify(next)); } catch (e) {} return next; }
+function goToStep(id) { if (inShell) parent.postMessage({ type: SLUG + '-nav', to: id }, '*'); }
+window.addEventListener('storage', function (e) { if (e.key === KEY || e.key === null) render(); });
+
+var ROWS = [
+  { id: 12, name: 'Line 1 Assembly', created: '10/2/2026, 9:14:00 AM', updated: '10/20/2026, 4:02:11 PM', team: 'Quality' },
+  { id: 13, name: 'Station A - Hinge', created: '10/5/2026, 11:30:00 AM', updated: '10/5/2026, 11:30:00 AM', team: '-' },
+  { id: 14, name: 'Paint Booth 2', created: '10/9/2026, 2:45:00 PM', updated: '10/28/2026, 8:20:45 AM', team: 'Vision Team' }
+];
+var wiz = 0;
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+
+function drawer(st) {
+  var titles = ['Instance Details', 'Camera', 'Variants and Captures'];
+  var steps = '<div class="steps">' + titles.map(function (t, i) { return '<div class="st ' + (i === wiz ? 'on' : i < wiz ? 'done' : '') + '"><i>' + (i + 1) + '</i>' + t + '</div>'; }).join('') + '</div>';
+  var body = '';
+  if (wiz === 0) body = '<div class="fld"><label>Instance Name <span style="color:var(--bad)">*</span></label><input class="ip" id="fName" value="' + esc(st.instanceName) + '"></div><div class="fld"><label>Team</label><select class="ip" id="fTeam"><option' + (st.team === 'Quality' ? ' selected' : '') + '>Quality</option><option' + (st.team === 'Vision Team' ? ' selected' : '') + '>Vision Team</option></select></div>';
+  if (wiz === 1) body = '<div class="grid2"><div class="fld"><label>Camera Name</label><input class="ip" value="' + esc(st.cameraName) + '"></div><div class="fld"><label>Camera Type</label><select class="ip"><option>3D Laser Profiler</option></select></div><div class="fld"><label>Protocol</label><input class="ip" value="GiGe" disabled></div><div class="fld"><label>Make</label><select class="ip"><option>Hik Robot</option></select></div><div class="fld"><label>Trigger Type</label><select class="ip"><option>Software</option><option>Hardware</option></select></div><div class="fld"><label>Camera IP</label><input class="ip" id="fIp" value="' + esc(st.cameraIp) + '"></div></div>';
+  if (wiz === 2) body = '<div class="fld" style="max-width:320px"><label>Variant</label><input class="ip" value="' + esc(st.variant) + '"></div><h3 class="sec" style="margin-top:6px">Captures</h3>' + st.captures.map(function (c, i) { return '<div class="capRow"><span class="muted" style="width:18px">' + (i + 1) + '</span><input class="ip" data-capn="' + i + '" value="' + esc(c.name) + '"><button class="kebab" data-capdel="' + i + '" aria-label="Remove capture"' + (st.captures.length < 2 ? ' disabled' : '') + '>×</button></div>'; }).join('') + '<button class="b ghost sm" id="capAdd">+ Add Capture</button>';
+  return '<div class="scrim right"><div class="drawer"><div class="dh"><span>Create 3D Instance</span><button class="kebab" id="wizX" aria-label="Close">×</button></div><div class="db">' + steps + body + '</div><div class="df"><button class="b warnb" id="wizBack">' + (wiz ? 'Back' : 'Cancel') + '</button><button class="b" id="wizNext">' + (wiz < 2 ? 'Next' : 'Create') + '</button></div></div></div>';
+}
+function render() {
+  var st = readShared(), rows = ROWS.slice();
+  if (st.created && MODE === 'after') rows.unshift({ id: 16, name: st.instanceName, created: '11/6/2026, 9:02:00 AM', updated: '11/6/2026, 9:02:00 AM', team: st.team, three: true });
+  var open = MODE === 'after' && STATE === 'create';
+  var tbl = '<div class="tw"><table class="t"><thead><tr><th>Instance ID</th><th>Instance Name</th><th>Created At</th><th>Updated At</th><th>Team</th><th>Actions</th></tr></thead><tbody>' + rows.map(function (r) {
+    return '<tr class="clk"' + (r.three ? ' data-open3d="1"' : '') + '><td>' + r.id + '</td><td>' + esc(r.name) + '</td><td>' + r.created + '</td><td>' + r.updated + '</td><td>' + esc(r.team) + '</td><td><button class="kebab" aria-label="Actions">⋮</button></td></tr>';
+  }).join('') + '</tbody></table></div>';
+  var btns = (MODE === 'after' ? '<button class="b ghost" id="create3d">Create 3D Instance</button>' : '') + '<button class="b" title="Upload an instance file (.zip) exported from Frinks Vision.">Add Instance</button>';
+  document.getElementById('app').innerHTML = railHtml('instances', false, false) + '<div class="work"><main id="main"><div class="page"><div class="pagehead"><div class="crumbs"><span class="c">Instances</span><span class="sep">/</span><span>Instance Details</span></div></div><div class="bar"><select class="ip"><option>All Instances</option></select><span class="sp"></span>' + btns + '</div>' + tbl + '</div></main></div>' + (open ? drawer(st) : '');
+}
+document.addEventListener('click', function (e) {
+  var t = e.target, st = readShared();
+  if (t.id === 'create3d') { if (inShell) goToStep('create'); else { STATE = 'create'; render(); } return; }
+  if (t.closest('[data-open3d]')) { goToStep('capture'); return; }
+  if (t.id === 'wizX') { wiz = 0; if (inShell) goToStep('instances'); else { STATE = 'default'; render(); } return; }
+  if (t.id === 'wizBack') { if (wiz) { keep(); wiz--; render(); } else { if (inShell) goToStep('instances'); else { STATE = 'default'; render(); } } return; }
+  if (t.id === 'wizNext') { keep(); if (wiz < 2) { wiz++; render(); } else { writeShared({ created: true }); wiz = 0; if (inShell) goToStep('capture'); else { STATE = 'default'; render(); } } return; }
+  if (t.id === 'capAdd') { keep(); st = readShared(); var n = st.captures.length + 1; st.captures.push({ id: 'c' + Date.now().toString(36), name: 'Capture ' + n }); writeShared({ captures: st.captures }); render(); return; }
+  if (t.getAttribute('data-capdel') !== null) { keep(); st = readShared(); st.captures.splice(+t.getAttribute('data-capdel'), 1); writeShared({ captures: st.captures, cap: st.captures[0].id }); render(); return; }
+  if (t.id === 'mToday') { location.search = '?mode=today&state=' + STATE; return; }
+  if (t.id === 'mAfter') { location.search = '?mode=after&state=' + STATE; return; }
+});
+function keep() {
+  var ch = {}, n = document.getElementById('fName'), tm = document.getElementById('fTeam'), ip = document.getElementById('fIp'), st = readShared();
+  if (n) ch.instanceName = n.value; if (tm) ch.team = tm.value; if (ip) ch.cameraIp = ip.value;
+  var caps = document.querySelectorAll('[data-capn]');
+  if (caps.length) { ch.captures = st.captures.map(function (c, i) { return { id: c.id, name: caps[i] ? caps[i].value : c.name }; }); }
+  writeShared(ch);
+}
+render();
+</script>
+</body>
+</html>

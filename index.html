@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype workflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#1e1c1c; --muted:#6b6f72; --faint:#9a9ea1; --line:#e6e6e6; --chip:#efefef; --brand:#ff4301; --brand-soft:#fff0ea; --bar:#ffffff; --bar-h:44px; color-scheme:light; }
+  * { box-sizing:border-box; }
+  html, body { height:100%; }
+  body { margin:0; overflow:hidden; display:flex; flex-direction:column; background:#f6f6f6; color:var(--ink); font-family:Outfit, system-ui, sans-serif; font-size:13px; }
+  button { font:inherit; color:inherit; }
+
+  .bar { flex:none; min-height:var(--bar-h); display:flex; align-items:center; gap:12px; padding:0 12px; background:var(--bar); border-bottom:1px solid var(--line); }
+  .nav { flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:2px; overflow-x:auto; scrollbar-width:none; white-space:nowrap; }
+  .grp { flex:none; padding:0 6px 0 2px; font-size:12px; font-weight:600; color:var(--muted); }
+  .sep { flex:none; width:1px; height:20px; background:var(--line); margin:0 8px 0 6px; }
+  .step { flex:none; display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 9px 0 4px; border:0; border-radius:14px; background:transparent; cursor:pointer; color:#3d3f41; }
+  .step:hover:not(:disabled) { background:var(--chip); }
+  .step .n { width:20px; height:20px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; background:var(--chip); color:var(--muted); font-size:11px; font-weight:600; }
+  .step:hover:not(:disabled) .n { background:#e2e2e2; }
+  .step[aria-current="step"] { background:var(--brand-soft); color:var(--brand); font-weight:600; }
+  .step[aria-current="step"] .n { background:var(--brand); color:#fff; }
+  .step:disabled { opacity:.38; cursor:not-allowed; }
+  .step.nl .t { display:none; }
+  .step.nl { padding:0 4px; }
+
+  .right { flex:none; display:flex; align-items:center; gap:8px; }
+  .seg { display:inline-flex; border:1px solid #d6d6d6; border-radius:7px; overflow:hidden; }
+  .seg button { border:0; background:#fff; padding:5px 10px; cursor:pointer; color:var(--muted); font-weight:500; }
+  .seg button + button { border-left:1px solid #d6d6d6; }
+  .seg button[aria-pressed="true"] { background:var(--ink); color:#fff; }
+  .nb { display:inline-flex; align-items:center; gap:4px; height:30px; padding:0 11px; border-radius:7px; border:1px solid #d6d6d6; background:#fff; cursor:pointer; font-weight:500; }
+  .nb:hover:not(:disabled) { border-color:#b9b9b9; }
+  .nb.primary { background:var(--ink); border-color:var(--ink); color:#fff; }
+  .nb.primary:hover:not(:disabled) { background:#000; }
+  .nb:disabled { opacity:.4; cursor:default; }
+  .nb svg { display:block; }
+  :focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
+
+  .stage { flex:1 1 auto; min-height:0; }
+  .stage iframe { display:block; width:100%; height:100%; border:0; background:#fff; }
+
+  @media (max-width:720px) {
+    .bar { flex-wrap:wrap; gap:6px 8px; padding:6px 8px; }
+    .nav { order:2; flex-basis:100%; overflow-x:auto; }
+    .right { order:1; margin-left:auto; }
+    .grp, .sep { display:none; }
+    .step.nl { padding:0 2px; }
+    .seg button { padding:5px 7px; }
+    .nb .lbl { display:none; }
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <nav class="nav" id="nav" aria-label="Workflow sections"></nav>
+  <div class="right">
+    <div class="seg" id="modeSeg" role="group" aria-label="Today or after the change">
+      <button type="button" data-mode="today">Today</button>
+      <button type="button" data-mode="after">After change</button>
+    </div>
+    <button type="button" class="nb" id="restartBtn" title="Start the walk again" aria-label="Start again">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+    </button>
+    <button type="button" class="nb" id="backBtn" aria-label="Back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg><span class="lbl">Back</span>
+    </button>
+    <button type="button" class="nb primary" id="nextBtn" aria-label="Next step">
+      <span class="lbl">Next step</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
+  </div>
+</header>
+<main class="stage">
+  <iframe id="frame" title="Prototype screen"></iframe>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  // ---- Edit only this block ------------------------------------------------
+  var TITLE = '3D inspection on Edge';
+  var SLUG = '3d-inspection';       // short; gives the "<slug>-state" storage key and the "<slug>-nav" message
+  // In journey order. The number on each step is its position here, so reordering renumbers the bar.
+  // group: starts a new labelled group at this step. file: the screen and its ?state=.
+  // today: false when the step only exists after the change (greyed out in Today).
+  var SECTIONS = [
+    { id: 'instances', group: 'Instance', label: 'Instances', file: 'instances.html?state=default' },
+    { id: 'create', label: 'Create 3D Instance', file: 'instances.html?state=create', today: false },
+    { id: 'capture', group: 'Camera', label: 'Capture Configuration', file: 'capture.html?state=default' },
+    { id: 'laser', label: 'Laser View', file: 'setup.html?state=laser', today: false },
+    { id: 'scans', label: 'Scans', file: 'setup.html?state=scans', today: false },
+    { id: 'filters', group: 'Setup', label: 'Filters', file: 'setup.html?state=filters', today: false },
+    { id: 'region', label: 'Region', file: 'setup.html?state=region', today: false },
+    { id: 'locate', label: 'Locate', file: 'setup.html?state=locate', today: false },
+    { id: 'reference', label: 'Reference', file: 'setup.html?state=reference', today: false },
+    { id: 'golden', label: 'Golden Profile', file: 'setup.html?state=golden', today: false },
+    { id: 'rules', label: 'Checks', file: 'setup.html?state=rules', today: false },
+    { id: 'nodata', label: 'No Data', file: 'setup.html?state=nodata', today: false },
+    { id: 'measures', label: 'Measures', file: 'setup.html?state=measures', today: false },
+    { id: 'boundary', label: 'Capture Boundary', file: 'setup.html?state=boundary', today: false },
+    { id: 'test', group: 'Check', label: 'Test on Scans', file: 'setup.html?state=test', today: false },
+    { id: 'result', label: 'Result', file: 'setup.html?state=result', today: false },
+    { id: 'heightmap', group: 'Beyond', label: 'Height Map', file: 'setup.html?state=heightmap', today: false }
+  ];
+  // --------------------------------------------------------------------------
+
+  var KEY = SLUG + '-state', NAV = SLUG + '-nav';
+  var INDEX = {};
+  SECTIONS.forEach(function (s, i) { INDEX[s.id] = i; });
+
+  var nav = document.getElementById('nav'), frame = document.getElementById('frame');
+  var backBtn = document.getElementById('backBtn'), nextBtn = document.getElementById('nextBtn');
+  var current = -1;
+  var mode = new URLSearchParams(location.search).get('mode') === 'today' ? 'today' : 'after';
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function open_(s) { return mode === 'after' || s.today !== false; }
+  function nearest(from, dir) {
+    for (var i = from + dir; i >= 0 && i < SECTIONS.length; i += dir) if (open_(SECTIONS[i])) return i;
+    return -1;
+  }
+
+  nav.innerHTML = SECTIONS.map(function (s, i) {
+    var pre = s.group ? (i ? '<span class="sep" aria-hidden="true"></span>' : '') + '<span class="grp">' + esc(s.group) + '</span>' : '';
+    return pre + '<button type="button" class="step" data-id="' + s.id + '" title="' + (i + 1) + '. ' + esc(s.label) + '">' +
+      '<span class="n">' + (i + 1) + '</span><span class="t">' + esc(s.label) + '</span></button>';
+  }).join('');
+
+  // Show as many step names as fit; the names farthest from the current step are hidden first (number + tooltip stay).
+  function fit() {
+    var steps = Array.prototype.slice.call(nav.querySelectorAll('.step'));
+    steps.forEach(function (b) { b.classList.remove('nl'); });
+    var order = steps.map(function (b, i) { return i; }).filter(function (i) { return i !== current; })
+      .sort(function (a, b) { return Math.abs(b - current) - Math.abs(a - current) || b - a; });
+    for (var k = 0; k < order.length && nav.scrollWidth > nav.clientWidth + 1; k++) steps[order[k]].classList.add('nl');
+    if (nav.scrollWidth > nav.clientWidth + 1 && steps[current]) steps[current].classList.add('nl');
+    // Still too wide even as numbers (a narrow window): the bar scrolls and the current step stays in view.
+    if (current === 0) nav.scrollLeft = 0;
+    else if (steps[current]) steps[current].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+  function srcFor(s) { return s.file + (s.file.indexOf('?') < 0 ? '?' : '&') + 'mode=' + mode; }
+  function hashId() { var h = decodeURIComponent(location.hash.replace(/^#/, '')); return INDEX.hasOwnProperty(h) ? h : null; }
+
+  function show(id) {
+    current = INDEX[id];
+    var s = SECTIONS[current];
+    Array.prototype.forEach.call(nav.querySelectorAll('.step'), function (b) {
+      var step = SECTIONS[INDEX[b.getAttribute('data-id')]];
+      if (b.getAttribute('data-id') === id) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+      b.disabled = !open_(step);
+      b.title = (INDEX[step.id] + 1) + '. ' + step.label + (open_(step) ? '' : ' (only in After change)');
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#modeSeg button'), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-mode') === mode));
+    });
+    backBtn.disabled = nearest(current, -1) < 0;
+    nextBtn.disabled = nearest(current, 1) < 0;
+    document.title = (current + 1) + '. ' + s.label + ' · ' + TITLE;
+    frame.src = srcFor(s);
+    fit();
+  }
+  function go(id) {
+    if (!INDEX.hasOwnProperty(id) || !open_(SECTIONS[INDEX[id]])) return;
+    if (hashId() === id) show(id); else location.hash = id;   // hashchange calls show()
+  }
+
+  nav.addEventListener('click', function (e) {
+    var b = e.target.closest('.step'); if (b && !b.disabled) go(b.getAttribute('data-id'));
+  });
+  backBtn.addEventListener('click', function () { var i = nearest(current, -1); if (i >= 0) go(SECTIONS[i].id); });
+  nextBtn.addEventListener('click', function () { var i = nearest(current, 1); if (i >= 0) go(SECTIONS[i].id); });
+  document.getElementById('modeSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-mode]'); if (!b || b.getAttribute('data-mode') === mode) return;
+    mode = b.getAttribute('data-mode');
+    try { history.replaceState(null, '', location.pathname + (mode === 'today' ? '?mode=today' : '') + location.hash); } catch (err) {}
+    var here = SECTIONS[current];
+    if (open_(here)) { show(here.id); return; }
+    // This step doesn't exist in Today: land on the nearest step that does.
+    var i = nearest(current, -1); if (i < 0) i = nearest(current, 1);
+    go(SECTIONS[i].id);
+  });
+  document.getElementById('restartBtn').addEventListener('click', function () {
+    try { localStorage.removeItem(KEY); } catch (err) {}
+    var i = open_(SECTIONS[0]) ? 0 : nearest(0, 1);
+    go(SECTIONS[i].id); show(SECTIONS[i].id);
+  });
+  window.addEventListener('hashchange', function () { var id = hashId(); if (id && open_(SECTIONS[INDEX[id]])) show(id); });
+  // A screen asks to move on, e.g. Finish on one screen -> the next step's id.
+  window.addEventListener('message', function (e) {
+    if (e.source !== frame.contentWindow) return;
+    var d = e.data;
+    if (d && d.type === NAV && typeof d.to === 'string') go(d.to);
+  });
+  window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+
+  var first = hashId();
+  if (first && !open_(SECTIONS[INDEX[first]])) first = null;
+  if (!first) { first = SECTIONS[open_(SECTIONS[0]) ? 0 : nearest(0, 1)].id; try { history.replaceState(null, '', location.pathname + location.search + '#' + first); } catch (err) {} }
+  show(first);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,995 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="edge.css">
+<style>
+html,body{height:100%;overflow:hidden}
+#app{display:flex;height:100%}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;height:100%;background:#fff}
+.hd{display:flex;align-items:center;gap:12px;padding:10px 16px 8px;flex:none}
+.hd .crumbs{font-size:20px}
+.bar3{display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--line);flex:none;min-height:40px;flex-wrap:wrap}
+.bar3 .tabs{margin:0;border:0}
+.bar3 .tab{padding:9px 12px}
+.bar3 .sp{flex:1}
+.bar3 select.ip{padding:4px 7px;font-size:13px}
+.rep{display:inline-flex;align-items:center;gap:4px}
+.rep button.ic{width:28px;height:28px;border:1px solid #cfcbc7;border-radius:6px;background:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.rep button.ic:hover{border-color:#a9a5a1}
+.rep .cnt{font-size:12px;color:var(--muted);min-width:42px;text-align:center;font-variant-numeric:tabular-nums}
+.body{flex:1;min-height:0;display:grid;grid-template-columns:172px minmax(0,1fr) 316px}
+.tools{background:var(--fill);border-right:1px solid var(--line);overflow-y:auto;padding:10px 8px}
+.tools h4{font-size:12px;color:var(--muted);font-weight:500;margin:0 6px 8px}
+.tool{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr);gap:0 7px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:7px;padding:5px 7px;margin-bottom:5px;align-items:center}
+.tool:hover{border-color:#bdb9b5}
+.tool.on{border-color:var(--primary);background:var(--primary-soft)}
+.tool .ico{grid-row:span 2;width:24px;height:24px;border-radius:5px;background:#26231f;color:#fff;display:flex;align-items:center;justify-content:center}
+.tool.on .ico{background:var(--primary)}
+.tool .tn{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool .tv{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden}
+.dot{width:7px;height:7px;border-radius:50%;background:#b9b5b1;flex:none}
+.dot.ok{background:#1f9d55}.dot.bad{background:#d92d20}.dot.warn{background:#d9a21b}
+.cen{display:flex;flex-direction:column;min-width:0;min-height:0;background:#17191d}
+.chips{display:flex;align-items:center;gap:5px;padding:6px 10px;background:#1f2227;flex:none;flex-wrap:wrap;min-height:36px}
+.chips .l{font-size:11.5px;color:#aeb3b8;margin-right:3px}
+.chip{border:1px solid #454a51;background:#2a2d33;color:#e4e6e9;border-radius:6px;padding:2px 8px;font-size:12px}
+.chip:hover{border-color:#7c8087}
+.chip.on{background:#fff;color:#111;border-color:#fff;font-weight:500}
+.chip .ex{font-size:10.5px;opacity:.7;margin-left:4px}
+.sk{display:flex;align-items:center;gap:14px;padding:5px 12px;background:var(--flat);color:var(--flat-ink);font-size:12.5px;flex:none;flex-wrap:wrap}
+.sk b{font-weight:600}.sk label{display:inline-flex;align-items:center;gap:7px}
+.sk input[type=range]{width:150px;accent-color:#38347a}
+.pre{border:1px solid #38347a66;background:#fff;color:#38347a;border-radius:6px;padding:3px 10px;font-size:12.5px}
+.pre.on{background:#38347a;color:#fff}
+.panes{flex:1;min-height:0;display:flex;flex-direction:column;gap:1px;background:#000}
+.pane{flex:1 1 0;min-height:60px;display:flex;flex-direction:column;background:#0e1013}
+.ph{display:flex;align-items:center;gap:8px;padding:3px 10px;background:#1f2227;color:#d5d8dc;font-size:12px;flex:none;min-height:28px;flex-wrap:wrap}
+.ph b{font-weight:500}
+.ph .sp{flex:1}
+.ph input[type=range]{width:170px;accent-color:#ff7a45;height:14px}
+.ph .v{font-variant-numeric:tabular-nums;color:#fff;min-width:50px;display:inline-block}
+.seg2{display:inline-flex;border:1px solid #454a51;border-radius:5px;overflow:hidden}
+.seg2 button{border:0;background:#2a2d33;color:#c9cdd2;padding:1px 8px;font-size:11.5px}
+.seg2 button+button{border-left:1px solid #454a51}
+.seg2 button.on{background:#e4e6e9;color:#111;font-weight:500}
+.cv{position:relative;flex:1;min-height:0;background:none;box-shadow:none}
+.cv canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.legend{display:inline-flex;gap:10px;align-items:center;font-size:11.5px;color:#c9cdd2;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:3px;margin-right:4px;vertical-align:middle}
+.outs{flex:none;background:#fff;border-top:1px solid var(--line);max-height:208px;overflow:auto}
+.ot{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.ot th{position:sticky;top:0;background:var(--primary);color:#fff;font-weight:500;text-align:left;padding:4px 10px;white-space:nowrap;z-index:1}
+.ot td{padding:4px 10px;border-top:1px solid var(--line);white-space:nowrap}
+.ot tr.clk{cursor:pointer}.ot tr.clk:hover td{background:var(--primary-soft)}
+.ot tr.sel td{background:var(--primary-soft)}
+.stt{font-weight:600}.stt.ok{color:var(--ok)}.stt.bad{color:var(--bad)}.stt.warn{color:#b7791f}.stt.mut{color:var(--muted);font-weight:400}
+.panel{display:flex;flex-direction:column;min-height:0;background:#fff;border-left:1px solid var(--line)}
+.pscroll{flex:1;min-height:0;overflow-y:auto;padding:0 0 10px}
+.pfoot{flex:none;display:flex;justify-content:space-between;gap:8px;padding:8px 12px;border-top:1px solid var(--line)}
+.ps{border-bottom:1px solid var(--line)}
+.psh{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--fill);font-size:13px;font-weight:500}
+.psh .sp{flex:1}
+.psb{padding:8px 12px 10px}
+.f{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;min-height:28px}
+.f label{font-size:12.5px;color:#3f3b37}
+.fc{display:flex;align-items:center;gap:5px;min-width:0}
+.fc .u{font-size:11.5px;color:var(--muted);min-width:22px}
+.ip.n{width:66px;padding:4px 6px;font-size:13px;font-variant-numeric:tabular-nums}
+select.ip.s{padding:4px 6px;font-size:13px;max-width:170px}
+input.sl{width:100%;accent-color:var(--primary);margin:0 0 6px}
+.segc{display:inline-flex;border:1px solid #cfcbc7;border-radius:6px;overflow:hidden;width:100%}
+.segc button{flex:1;border:0;background:#fff;padding:4px 6px;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.segc button+button{border-left:1px solid #cfcbc7}
+.segc button.on{background:var(--primary);color:#fff;font-weight:500}
+.card{border:1px solid var(--line);border-radius:8px;margin:8px 10px;overflow:hidden;padding:0}
+.card.off .cb{display:none}
+.ch{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--fill);font-weight:500;font-size:13px}
+.ch .sp{flex:1}.cb{padding:8px 10px 4px}
+.cval{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.big{font-size:22px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:8px}
+.big.ok{background:var(--ok-soft);color:var(--ok)}.big.bad{background:var(--bad-soft);color:var(--bad)}.big.warn{background:var(--warn-soft);color:#7a5211}
+.minic{height:150px;position:relative;margin-top:8px;border-radius:6px;overflow:hidden}
+.minic canvas{position:absolute;inset:0;width:100%;height:100%}
+.score{display:inline-flex;align-items:baseline;gap:6px;font-size:13px}
+.score b{font-size:20px;font-weight:600}
+.toast3{position:absolute;right:340px;bottom:70px;background:#111;color:#fff;padding:8px 14px;border-radius:7px;font-size:13px;z-index:50}
+.prog{height:6px;border-radius:3px;background:#ececec;overflow:hidden;margin-top:6px}.prog i{display:block;height:100%;background:var(--primary);width:0}
+#modeSwitch{display:inline-flex}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="chrome.js"></script>
+<script src="sim.js"></script>
+<script src="views.js"></script>
+<script>
+var SLUG = '3d-inspection';
+var NX = Sim.NX, NY = Sim.NY, DX = Sim.DX, DY = Sim.DY;
+
+function defaultCfg(capId) {
+  var cp = Sim.capParams(capId), c = cp.c;
+  function rule(n, where, gold, ref, minX, minY) { return { on: where === 'weld', name: n, where: where, gold: gold, ref: ref, size: 'xy', minX: minX, minY: minY, minA: 5, minV: 5, countOn: false, countN: 8, countA: 0.5 }; }
+  return {
+    peak: 'Best', exposure: 400, gain: 1, hdr: 'No HDR', exposures: '100, 500, 1000',
+    filter: { gapX: 1, gapY: 1, median: 0, smooth: 0 },
+    region: { mode: 'auto', y0: 14, y1: 166, minValid: 30, minLen: 40, margin: 1, ignore: [] },
+    locate: { mode: 'max', b0: Math.round(c - 12), b1: Math.round(c + 12), find: 'peak', wl: 5, wr: 5, x0: c - 5, x1: c + 5, track: 'line', fixture: true },
+    ref: { mode: 'roof', gap: 1.5, w: 6, top: 95, smooth: 5, absZ: 0 },
+    golden: { on: true, ids: ['g1', 'g2', 'g3'] },
+    merge: 0,
+    rules: {
+      spike: rule('Spike', 'weld', [-0.8, 0.8], [0.1, 3.7], 1, 3),
+      height: rule('Height', 'weld', [-0.4, 0.4], [0.1, 3.4], 4, 10),
+      gap: rule('Gap', 'weld', [-1.5, 99], [0.1, 99], 2, 3),
+      spatter: rule('Spatter', 'beside', [-0.5, 0.5], [-0.5, 0.5], 0.5, 0.5)
+    },
+    nodata: { maxLen: 5, maxPct: 10, action: 'Not inspected' },
+    measures: {
+      crest: { on: false, name: 'Crest height', stat: 'Mean', lo: +(cp.H * 0.82).toFixed(2), hi: +(cp.H * 1.2).toFixed(2), inv: false, unit: 'mm' },
+      width: { on: false, name: 'Weld width', stat: 'Mean', lo: +(cp.s * 2.0).toFixed(2), hi: +(cp.s * 2.8).toFixed(2), inv: false, unit: 'mm' },
+      area: { on: false, name: 'Cross-section area', stat: 'Mean', lo: +(cp.H * cp.s * 2).toFixed(1), hi: +(cp.H * cp.s * 3).toFixed(1), inv: false, unit: 'mm²' },
+      pos: { on: true, name: 'Weld position', stat: 'Mean', lo: +(c - 8).toFixed(1), hi: +(c + 8).toFixed(1), inv: false, unit: 'mm' }
+    },
+    hm: { background: 'Curved', height: 0.6, x0: 3, x1: 20, module: 'OCR_1' },
+    boundary: { overlap: 0, merge: false }
+  };
+}
+var DEFAULTS = {
+  instanceName: 'Roof Weld 3D', team: 'Quality', variant: 'Variant A',
+  captures: [{ id: 'c1', name: 'Capture 1' }, { id: 'c2', name: 'Capture 2' }],
+  cap: 'c1', cfg: {}, sim: { tilt: 0, shift: 0 },
+  view: { pal: 'colour', palR: 'ref', dim: '2d', yaw: -0.5, pitch: 1.0, zs: 4, scanMode: 'Video', mm: 'diff', replay: true, onlyWrong: false, saveRef: true, saveScatter: false, savePly: false },
+  scanByStep: { laser: 'shiny', scans: 'g1', filters: 'shiny', region: 'g1', locate: 'shift', reference: 'tilt', golden: 'low', rules: 'crack', nodata: 'hole', measures: 'track', boundary: 'g1', test: 'g1', result: 'low', heightmap: 'stamp' },
+  taken: 0
+};
+
+var query = new URLSearchParams(location.search);
+var MODE = query.get('mode') === 'today' ? 'today' : 'after';
+var STATE = query.get('state') || 'laser';
+var inShell = false;
+try { inShell = window.self !== window.top; } catch (e) { inShell = true; }
+var KEY = SLUG + '-state';
+function readShared() {
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {}
+  var out = Object.assign({}, DEFAULTS, saved);
+  out.view = Object.assign({}, DEFAULTS.view, saved.view || {});
+  out.sim = Object.assign({}, DEFAULTS.sim, saved.sim || {});
+  out.scanByStep = Object.assign({}, DEFAULTS.scanByStep, saved.scanByStep || {});
+  return out;
+}
+function writeShared(change) {
+  var next = Object.assign(readShared(), change);
+  try { localStorage.setItem(KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+function goToStep(id) {
+  if (inShell) parent.postMessage({ type: SLUG + '-nav', to: id }, '*');
+  else if (id === 'capture') location.href = 'capture.html';
+  else location.search = '?state=' + id;
+}
+window.addEventListener('storage', function (e) { if (e.key === KEY || e.key === null) { S = readShared(); render(); } });
+
+var S = readShared();
+var TOOLS = [
+  ['capture', 'Camera', '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.4"/>'],
+  ['laser', 'Laser View', '<path d="M2 17c3-9 5-9 7 0s4 0 6-4 5-4 7 0"/>'],
+  ['scans', 'Scans', '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M9 4v16"/>'],
+  ['filters', 'Filters', '<path d="M4 5h16l-6 8v6l-4-2v-4z"/>'],
+  ['region', 'Region', '<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/>'],
+  ['locate', 'Locate', '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>'],
+  ['reference', 'Reference', '<path d="M3 17h18"/><path d="M6 17V8M18 17V8" stroke-dasharray="2 2"/><path d="M3 8h6M15 8h6"/>'],
+  ['golden', 'Golden Profile', '<path d="M2 18h5c3 0 3-12 5-12s2 12 5 12h5"/>'],
+  ['rules', 'Checks', '<path d="M4 7l2 2 3-3M4 16l2 2 3-3M12 7h8M12 16h8"/>'],
+  ['nodata', 'No Data', '<circle cx="12" cy="12" r="8"/><path d="M6.5 6.5l11 11"/>'],
+  ['measures', 'Measures', '<path d="M3 16l13-13 5 5L8 21z"/><path d="M8 11l2 2M11 8l2 2M14 5l2 2"/>'],
+  ['boundary', 'Capture Boundary', '<rect x="3" y="6" width="8" height="12"/><rect x="13" y="6" width="8" height="12"/>'],
+  ['test', 'Test on Scans', '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/>'],
+  ['result', 'Result', '<path d="M4 12l5 5L20 6"/>'],
+  ['heightmap', 'Height Map', '<path d="M3 20l6-10 4 6 3-4 5 8z"/>']
+];
+var CHIPS = {
+  laser: ['shiny', 'g1'], filters: ['shiny', 'g1', 'hole'], region: ['g1', 'low'], locate: ['g1', 'shift', 'missing', 'track'],
+  reference: ['g1', 'tilt', 'raised', 'shift'], golden: ['low', 'g1', 'spike', 'crack'], rules: ['crack', 'split', 'pores', 'spike', 'low', 'missing', 'spatter', 'g1'],
+  nodata: ['hole', 'shiny', 'g1'], measures: ['track', 'low', 'g1'], result: ['low', 'spike', 'crack', 'hole', 'missing', 'g1'], scans: []
+};
+function capCfg(id) { if (!S.cfg[id]) S.cfg[id] = defaultCfg(id); return S.cfg[id]; }
+function cfg() { var c = capCfg(S.cap); if (S.hdrBy && S.hdrBy[S.cap]) c.hdr = S.hdrBy[S.cap]; return c; }
+function scanId() { return S.scanByStep[STATE] || 'g1'; }
+function scanMeta(id) { return Sim.SCANS.filter(function (s) { return s.id === id; })[0] || { id: id, name: id, exp: '' }; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function gv(path) { var o = path[0] === '$' ? S : cfg(), ks = path.replace(/^\$\./, '').split('.'); ks.forEach(function (k) { o = o == null ? o : o[k]; }); return o; }
+function sv(path, v) { var o = path[0] === '$' ? S : cfg(), ks = path.replace(/^\$\./, '').split('.'); for (var i = 0; i < ks.length - 1; i++) o = o[ks[i]]; o[ks[ks.length - 1]] = v; }
+function f2(v, n) { return v === v && v !== undefined && v !== null ? (+v).toFixed(n === undefined ? 2 : n) : '–'; }
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+
+/* ---------- small controls ---------- */
+function num(p, o) { o = o || {}; return '<input class="ip n" type="number" aria-label="' + esc(o.a || p) + '" data-k="' + p + '" value="' + gv(p) + '" step="' + (o.step || 0.1) + '"' + (o.min !== undefined ? ' min="' + o.min + '"' : '') + (o.max !== undefined ? ' max="' + o.max + '"' : '') + '>'; }
+function sli(p, a, b, st) { return '<input class="sl" type="range" aria-label="' + esc(p) + '" data-k="' + p + '" min="' + a + '" max="' + b + '" step="' + st + '" value="' + gv(p) + '">'; }
+function sel(p, opts) { return '<select class="ip s" aria-label="' + esc(p) + '" data-k="' + p + '">' + opts.map(function (o) { var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; return '<option value="' + esc(v) + '"' + (String(gv(p)) === String(v) ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select>'; }
+function tog(p, a) { return '<label class="tog"><input type="checkbox" aria-label="' + esc(a || p) + '" data-k="' + p + '"' + (gv(p) ? ' checked' : '') + '><i></i></label>'; }
+function seg(p, opts) { return '<div class="segc" data-seg="' + p + '" role="group">' + opts.map(function (o) { var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; return '<button type="button" data-v="' + esc(v) + '" class="' + (String(gv(p)) === String(v) ? 'on' : '') + '">' + esc(t) + '</button>'; }).join('') + '</div>'; }
+function fld(l, c, u) { return '<div class="f"><label>' + l + '</label><div class="fc">' + c + (u !== undefined ? '<span class="u">' + u + '</span>' : '') + '</div></div>'; }
+function sec(t, b, r) { return '<section class="ps"><div class="psh"><span>' + t + '</span><span class="sp"></span>' + (r || '') + '</div><div class="psb">' + b + '</div></section>'; }
+function stat(s) { return s === 'ok' ? '<span class="stt ok">✓</span>' : s === 'bad' ? '<span class="stt bad">✕</span>' : s === 'warn' ? '<span class="stt warn">!</span>' : '<span class="stt mut">–</span>'; }
+var REASON = { spike: 'Spike', height: 'Height', gap: 'Gap', spatter: 'Spatter', crest: 'Crest height', width: 'Weld width', area: 'Cross-section area', pos: 'Weld position', nodata: 'No data' };
+function reasonText(a) { return a.map(function (k) { return REASON[k] || k; }).join(', '); }
+function verdictTag(v) { return '<span class="stt ' + (v === 'OK' ? 'ok' : v === 'NG' ? 'bad' : 'warn') + '">' + v + '</span>'; }
+
+/* ---------- panes ---------- */
+function linePane() { return '<label style="display:inline-flex;align-items:center;gap:6px">Y <input id="lineR" type="range" min="0" max="' + (NY - 1) + '" step="1" value="' + (S.line || 180) + '"><span class="v" id="lineV"></span></label>'; }
+function palSeg(ref, key) {
+  key = key || 'pal';
+  var o = [['colour', 'Colour'], ['gray', 'Grayscale']]; if (ref !== false) o.push(['ref', 'Reference']);
+  return '<span class="seg2" data-g="$.view.' + key + '">' + o.map(function (x) { return '<button type="button" data-v="' + x[0] + '" class="' + (S.view[key] === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</span>';
+}
+function dimSeg() {
+  var zs = S.view.dim === '3d' ? '<span class="seg2" data-g="$.view.zs" style="margin-left:6px">' + [1, 2, 4, 8].map(function (n) { return '<button type="button" data-v="' + n + '" class="' + (+S.view.zs === n ? 'on' : '') + '">Z×' + n + '</button>'; }).join('') + '</span>' : '';
+  return '<span class="seg2" data-g="$.view.dim"><button type="button" data-v="2d" class="' + (S.view.dim !== '3d' ? 'on' : '') + '">Height map</button><button type="button" data-v="3d" class="' + (S.view.dim === '3d' ? 'on' : '') + '">3D</button></span>' + zs;
+}
+function pane(id, title, tools, style) { return '<div class="pane" style="' + (style || '') + '"><div class="ph"><b>' + title + '</b>' + (tools || '') + '</div><div class="cv"><canvas id="' + id + '" role="img" aria-label="' + esc(title) + '"></canvas></div></div>'; }
+var XS = new Float32Array(NX); for (var ix = 0; ix < NX; ix++) XS[ix] = ix * DX;
+var YS = new Float32Array(NY); for (var iy = 0; iy < NY; iy++) YS[iy] = iy * DY;
+function row(z, j) { return z.subarray(j * NX, (j + 1) * NX); }
+function zRange(z) { return Views.autoRange(z); }
+
+/* ---------- compute with memory ---------- */
+var R = null, lastKey = '';
+function compute() {
+  var k = JSON.stringify([S.cap, scanId(), cfg(), S.sim]);
+  if (k !== lastKey || !R) { R = Sim.run(S.cap, scanId(), cfg(), S.sim); lastKey = k; }
+  return R;
+}
+function interesting(id) {
+  var m = { spike: 68, low: 100, crack: 88, split: 100, missing: 112, hole: 124, track: 110 };
+  if (m[id]) return Math.round(m[id] / DY);
+  if (id === 'shiny') {
+    var scan = Sim.genScan(S.cap, id, { exposure: cfg().exposure, hdr: cfg().hdr }), best = 180, bn = 0;
+    for (var j = 0; j < NY; j++) { var n = 0; for (var i = 0; i < NX; i++) if (scan.gs[j * NX + i] === 2) n++; if (n > bn) { bn = n; best = j; } }
+    return best;
+  }
+  return Math.round(90 / DY);
+}
+function setScan(id) { S.scanByStep[STATE] = id; S.line = interesting(id); save(); render(); }
+
+/* ---------- map helpers ---------- */
+function drawMapPane(id, r, o) {
+  o = o || {};
+  var cv = document.getElementById(id); if (!cv) return null;
+  var pal = o.pal || S.view.pal, rr = o.range || zRange(r.z);
+  if (S.view.dim === '3d' && o.allow3d) {
+    Views.draw3D(cv, { z: o.z || r.z, lo: rr[0], hi: rr[1], pal: pal === 'ref' ? 'colour' : pal, yaw: S.view.yaw, pitch: S.view.pitch, zs: S.view.zs, box: o.box, fixture: o.fixture });
+    cv._P = null;
+    return null;
+  }
+  return Views.drawMap(cv, { z: o.z || r.z, I: r.scan.I, pal: pal, lo: rr[0], hi: rr[1], draw: function (P) { if (o.draw) o.draw(P); if (o.line !== false) Views.lineMarker(P, S.line); } });
+}
+function overlayWindow(P, r, opts) {
+  opts = opts || {};
+  var lc = r.lc, rg = r.rg, c = lc.c;
+  Views.polyAlong(P, function (j) { return c[j] - lc.wl; }, rg.j0, rg.j1, 'rgba(255,255,255,.9)', 1, [4, 3]);
+  Views.polyAlong(P, function (j) { return c[j] + lc.wr; }, rg.j0, rg.j1, 'rgba(255,255,255,.9)', 1, [4, 3]);
+  if (opts.centre) Views.polyAlong(P, function (j) { return c[j]; }, rg.j0, rg.j1, '#ff7a45', 1.4);
+}
+function overlayRefs(P, r) {
+  var g = cfg().ref, lc = r.lc, rg = r.rg, ctx = P.c;
+  if (g.mode === 'abs' || g.mode === 'golden') return;
+  var cap = r.scan.cap, follow = r.rf.follow;
+  function side(s, col) {
+    ctx.save(); ctx.fillStyle = col; ctx.beginPath();
+    var j;
+    for (j = rg.j0; j <= rg.j1; j += 4) { var cj = follow || lc.manual ? lc.c[j] : cap.c, a = s < 0 ? cj - lc.wl - g.gap - g.w : cj + lc.wr + g.gap; ctx[j === rg.j0 ? 'moveTo' : 'lineTo'](P.X(j), P.Y(a)); }
+    for (j = rg.j1; j >= rg.j0; j -= 4) { var ck = follow || lc.manual ? lc.c[j] : cap.c, b = s < 0 ? ck - lc.wl - g.gap : ck + lc.wr + g.gap + g.w; ctx.lineTo(P.X(j), P.Y(b)); }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  if (g.mode !== 'door') side(-1, 'rgba(47,208,143,.35)');
+  if (g.mode !== 'roof') side(1, 'rgba(167,139,250,.38)');
+}
+function allBlobs(r) { var o = []; ['gap', 'height', 'spike', 'spatter'].forEach(function (k) { r.rules[k].blobs.forEach(function (b) { o.push(b); }); }); return o; }
+function overlayBlobs(P, r, labels) {
+  var C = Views.C;
+  allBlobs(r).forEach(function (b) { if (!b.pass) Views.blobBox(P, b, C.yellow); });
+  r.defects.forEach(function (b, i) { Views.blobBox(P, b, b.high ? '#ff5a52' : '#ff9f1a', labels ? String(i + 1) : ''); });
+}
+
+/* ---------- cross-section ---------- */
+function crossSpec(r, j, extra) {
+  var rr = zRange(r.z), s = Object.assign({ xmin: 0, xmax: Sim.XMAX, ymin: rr[0] - 0.7, ymax: rr[1] + 0.9, xlabel: 'X (mm)', ylabel: 'Z (mm)', series: [{ xs: XS, ys: row(r.z, j), color: '#fff', width: 1.5 }] }, extra || {});
+  return s;
+}
+function refLines(r, j, s) {
+  var g = cfg().ref, c = r.lc.c[j], C = Views.C;
+  if (g.mode === 'roof' || g.mode === 'both') s.hlines.push({ y: r.rf.rL[j], color: C.green, dash: [5, 4] });
+  if (g.mode === 'door' || g.mode === 'both') s.hlines.push({ y: r.rf.rR[j], color: C.violet, dash: [5, 4] });
+  if (g.mode === 'line') s.segs.push({ x0: 0, x1: Sim.XMAX, y0: Sim.refAt(r.rf, g, j, 0), y1: Sim.refAt(r.rf, g, j, Sim.XMAX), color: C.green, dash: [5, 4] });
+  if (g.mode === 'abs') s.hlines.push({ y: +g.absZ, color: C.yellow, dash: [5, 4] });
+}
+
+/* ---------- tool values ---------- */
+function toolVal(id, r) {
+  var c = cfg();
+  switch (id) {
+    case 'capture': return ['', c.hdr === 'No HDR' ? 'Hik Robot' : c.hdr];
+    case 'laser': return ['ok', c.peak];
+    case 'scans': return ['', Sim.SCANS.filter(function (x) { return !x.hidden; }).length + S.taken + ' saved'];
+    case 'filters': return ['ok', f2(Sim.noDataPct(r.z, r.rg), 1) + '% no data'];
+    case 'region': return [r.rg.detected ? 'ok' : 'bad', f2((r.rg.j1 - r.rg.j0) * DY, 0) + ' mm'];
+    case 'locate': return [r.lc.foundPct > 95 ? 'ok' : 'warn', 'X ' + f2(r.lc.c[S.line || 180], 1) + ' mm'];
+    case 'reference': return ['ok', ({ roof: 'Roof', door: 'Door', both: 'Both', line: 'Line', golden: 'None', abs: 'Absolute' })[c.ref.mode]];
+    case 'golden': return [c.golden.on ? 'ok' : '', c.golden.on ? c.golden.ids.length + ' scans' : 'Off'];
+    case 'rules': { var bad = r.reasons.some(function (x) { return r.rules[x]; }); return [bad ? 'bad' : 'ok', bad ? r.defects.length + (r.defects.length === 1 ? ' defect' : ' defects') : 'None']; }
+    case 'nodata': return [r.ndHit ? 'warn' : 'ok', f2(r.ndPct, 1) + '%'];
+    case 'measures': { var on = Object.keys(c.measures).filter(function (k) { return c.measures[k].on; }); return [on.some(function (k) { return r.msr[k].hit; }) ? 'bad' : on.length ? 'ok' : '', on.length + ' on']; }
+    case 'boundary': return [c.boundary.merge ? 'ok' : '', c.boundary.merge ? 'Merged' : 'Off'];
+    case 'test': return [testScore ? (testScore.right === testScore.total ? 'ok' : 'warn') : '', testScore ? testScore.right + '/' + testScore.total : '–'];
+    case 'result': return [r.verdict === 'OK' ? 'ok' : r.verdict === 'NG' ? 'bad' : 'warn', r.verdict];
+    case 'heightmap': return ['', c.hm.module];
+  }
+  return ['', ''];
+}
+function renderTools(r) {
+  document.getElementById('tools').innerHTML = '<h4>Tools</h4>' + TOOLS.map(function (t) {
+    var v = toolVal(t[0], r);
+    return '<button type="button" class="tool ' + (t[0] === STATE ? 'on' : '') + '" data-go="' + t[0] + '"><span class="ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + t[2] + '</svg></span><span class="tn">' + t[1] + '</span><span class="tv"><i class="dot ' + v[0] + '"></i>' + esc(v[1]) + '</span></button>';
+  }).join('');
+}
+function outsTable(heads, rows, a) {
+  a = a || {};
+  return '<table class="ot"><thead><tr>' + heads.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' + rows.map(function (rw, i) {
+    var at = a.rowAttr ? a.rowAttr(i) : '';
+    return '<tr ' + at + '>' + rw.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>';
+  }).join('') + '</tbody></table>';
+}
+
+/* ---------- steps ---------- */
+var STEPS = {};
+function scanOuts(r) { return [['Result for this scan', verdictTag(r.verdict) + (r.reasons.length ? ' <span class="stt mut">' + reasonText(r.reasons) + '</span>' : ''), '']]; }
+
+STEPS.laser = {
+  layout: function () {
+    var m = S.view.scanMode, top = m === 'Video' ? pane('laser', 'Video', linePane()) : m === 'Surface' ? pane('map', 'Surface', linePane() + '<span class="sp"></span>' + dimSeg() + palSeg()) : '';
+    return top + pane('prof', 'Profile', m === 'Profile' ? linePane() : '') ;
+  },
+  panel: function () {
+    var c = cfg();
+    return sec('Scan Mode', seg('$.view.scanMode', ['Video', 'Profile', 'Surface'])) +
+      sec('Exposure', fld('HDR Type', sel('hdr', ['No HDR', 'Auto HDR', 'Manual HDR'])) + (c.hdr !== 'No HDR' ? '<div class="f"><label>Exposure Values</label><div class="fc"><input class="ip" style="width:150px;font-size:13px;padding:4px 6px" data-k="exposures" value="' + esc(c.exposures) + '"></div></div>' : fld('Exposure', num('exposure', { step: 10, min: 20, max: 3000 }), 'µs') + sli('exposure', 40, 1600, 10)) + fld('Gain', num('gain', { step: 0.1, min: 1, max: 8 }), '')) +
+      sec('Peak Selection', seg('peak', ['Best', 'Top', 'Bottom', 'Continuity']));
+  },
+  draw: function (r) {
+    var c = cfg(), j = S.line;
+    var lz = document.getElementById('laser');
+    if (lz) Views.drawLaser(lz, { scan: r.scan, j: j, exposure: c.exposure, hdr: c.hdr, spots: r.zPeak });
+    drawMapPane('map', r, { allow3d: true, z: r.zPeak });
+    var dots = [], ys = row(r.zPeak, j), tr = row(r.scan.z, j);
+    for (var i = 0; i < NX; i++) if (ys[i] === ys[i] && Math.abs(ys[i] - tr[i]) > 0.3) dots.push([i * DX, ys[i]]);
+    var rr = zRange(r.scan.z);
+    Views.drawChart(document.getElementById('prof'), { xmin: 0, xmax: Sim.XMAX, ymin: rr[0] - 0.7, ymax: rr[1] + 1.6, xlabel: 'X (mm)', ylabel: 'Z (mm)', series: [{ xs: XS, ys: tr, color: 'rgba(255,255,255,.28)', width: 3 }, { xs: XS, ys: ys, color: '#35e0ff', width: 1.5 }], dots: [{ color: '#ff5a52', pts: dots }] });
+  },
+  outs: function (r) {
+    var false0 = 0, tot = 0, j = S.line, rw = row(r.zPeak, j), v = 0;
+    for (var q = 0; q < r.zPeak.length; q++) { var a = r.zPeak[q]; if (a === a) { tot++; if (Math.abs(a - r.scan.z[q]) > 0.3) false0++; } }
+    for (var i = 0; i < NX; i++) if (rw[i] === rw[i]) v++;
+    return outsTable(['Output', 'Value', ''], [
+      ['Points found on this line', f2(v / NX * 100, 1) + ' %', stat(v / NX > 0.9 ? 'ok' : 'warn')],
+      ['False points in this scan', f2(false0 / Math.max(1, tot) * 100, 2) + ' %', stat(false0 / Math.max(1, tot) < 0.002 ? 'ok' : 'bad')],
+      ['No data in this scan', f2(Sim.noDataPct(r.zPeak, r.rg), 2) + ' %', stat(Sim.noDataPct(r.zPeak, r.rg) < 2 ? 'ok' : 'warn')]
+    ].concat(scanOuts(r)));
+  }
+};
+
+STEPS.scans = {
+  layout: function () { return pane('map', 'Replay', dimSeg() + '<span class="sp"></span>' + palSeg()); },
+  panel: function () {
+    return sec('Take Scan', '<button class="b" id="takeBtn" style="width:100%">Take Scan</button><div class="prog" id="prog" hidden><i></i></div>') +
+      sec('Saved With Each Scan', fld('Range', '<span class="stt mut">Always</span>', '') + fld('Reference', tog('$.view.saveRef', 'Reference'), '') + fld('Scatter', tog('$.view.saveScatter', 'Scatter'), '') + fld('Point cloud', tog('$.view.savePly', 'Point cloud'), '')) +
+      sec('Size Per Scan', (function () {
+        var mb = 30 + (S.view.saveRef ? 15 : 0) + (S.view.saveScatter ? 15 : 0) + (S.view.savePly ? 173 : 0);
+        return fld('Each scan', '<b style="font-weight:500">' + mb + ' MB</b>', '') + fld('500 scans a day', '<b style="font-weight:500">' + f2(mb * 500 / 1000, 0) + ' GB</b>', '');
+      })());
+  },
+  draw: function (r) { drawMapPane('map', r, { allow3d: true, line: false, draw: function (P) { if (S.view.pal !== 'ref') overlayWindow(P, r); } }); },
+  outs: function () {
+    var list = Sim.SCANS.filter(function (s) { return !s.hidden; }), rows = [], cur = scanId();
+    for (var n = S.taken; n > 0; n--) rows.push({ id: 'g' + (1 + n % 3), name: 'Scan ' + (list.length + n), lab: 'Unlabelled', at: 'Just now' });
+    list.forEach(function (s, i) { rows.push({ id: s.id, name: s.name, lab: s.exp === 'OK' ? 'OK' : s.exp === 'NG' ? 'NG' : 'Unlabelled', at: '06 Nov, ' + (9 + i % 8) + ':' + (10 + i * 3) }); });
+    return outsTable(['Scan', 'Taken', 'Label', 'Used for Golden Profile', 'Size'], rows.map(function (s) {
+      return [s.name, s.at, s.lab, cfg().golden.ids.indexOf(s.id) >= 0 && s.at !== 'Just now' ? stat('ok') : stat(''), '45 MB'];
+    }), { rowAttr: function (i) { return 'class="clk ' + (rows[i].id === cur && rows[i].at !== 'Just now' ? 'sel' : '') + '" data-scan="' + rows[i].id + '"'; } });
+  }
+};
+
+STEPS.filters = {
+  layout: function () { return pane('m1', 'Before filters', '<span class="sp"></span>' + palSeg(false)) + pane('m2', 'After filters'); },
+  panel: function () {
+    return sec('Gap Filling', fld('Filter in X', num('filter.gapX', { step: 0.25, min: 0 }), 'mm') + sli('filter.gapX', 0, 6, 0.25) + fld('Filter in Y', num('filter.gapY', { step: 0.5, min: 0 }), 'mm') + sli('filter.gapY', 0, 12, 0.5)) +
+      sec('Median', fld('Window in X', num('filter.median', { step: 0.5, min: 0 }), 'mm') + sli('filter.median', 0, 4, 0.5)) +
+      sec('Smoothing', fld('Window in X', num('filter.smooth', { step: 0.5, min: 0 }), 'mm') + sli('filter.smooth', 0, 4, 0.5));
+  },
+  draw: function (r) {
+    var rr = zRange(r.z), pal = S.view.pal === 'ref' ? 'colour' : S.view.pal;
+    drawMapPane('m1', r, { z: r.zPeak, pal: pal, range: rr, line: false });
+    drawMapPane('m2', r, { z: r.z, pal: pal, range: rr, line: false });
+  },
+  outs: function (r) {
+    var f = 0; for (var q = 0; q < r.filled.length; q++) f += r.filled[q];
+    var a = Sim.noDataPct(r.zPeak, r.rg), b = Sim.noDataPct(r.z, r.rg);
+    return outsTable(['Output', 'Value', ''], [['No data before filters', f2(a, 2) + ' %', stat('')], ['No data after filters', f2(b, 2) + ' %', stat(b < 1 ? 'ok' : 'warn')], ['Points filled', f.toLocaleString(), stat('')]].concat(scanOuts(r)));
+  }
+};
+
+STEPS.region = {
+  layout: function () { return pane('map', 'Region', dimSeg() + '<span class="sp"></span>' + palSeg(), 'flex:1.5 1 0') + pane('vl', 'Valid points per line'); },
+  panel: function () {
+    var g = cfg().region, b = '';
+    b += seg('region.mode', [['all', 'Whole scan'], ['manual', 'Y-range'], ['auto', 'Part detection']]) + '<div style="height:10px"></div>';
+    if (g.mode === 'manual') b += fld('Y from', num('region.y0', { step: 1 }), 'mm') + fld('Y to', num('region.y1', { step: 1 }), 'mm');
+    if (g.mode === 'auto') b += fld('Min valid points', num('region.minValid', { step: 5, min: 1, max: 100 }), '%') + fld('Min part length', num('region.minLen', { step: 5 }), 'mm') + fld('Margin at ends', num('region.margin', { step: 0.5, min: 0 }), 'mm');
+    var zones = g.ignore.map(function (z, i) { return '<div class="f"><label>Zone ' + (i + 1) + '</label><div class="fc">' + num('region.ignore.' + i + '.y0', { step: 1 }) + '<span class="u">to</span>' + num('region.ignore.' + i + '.y1', { step: 1 }) + '<button type="button" class="kebab" data-delzone="' + i + '" aria-label="Remove zone">×</button></div></div>'; }).join('');
+    return sec('Scan Region', b) + sec('Ignore Zones', zones + '<button type="button" class="b ghost sm" id="addZone">+ Add Zone</button>');
+  },
+  draw: function (r) {
+    var g = cfg().region, rg = r.rg, rr = zRange(r.z), C = Views.C;
+    drawMapPane('map', r, {
+      allow3d: true, line: false, box: { y0: rg.j0 * DY, y1: rg.j1 * DY, x0: 0, x1: Sim.XMAX, z0: rr[0], z1: rr[1], label: 'Region 1' },
+      draw: function (P) {
+        var c = P.c; c.save(); c.fillStyle = 'rgba(0,0,0,.55)';
+        c.fillRect(P.L, P.T, P.X(rg.j0) - P.L, P.PH); c.fillRect(P.X(rg.j1), P.T, P.L + P.PW - P.X(rg.j1), P.PH);
+        c.fillStyle = 'rgba(255,210,63,.28)';
+        g.ignore.forEach(function (z) { c.fillRect(P.X(z.y0 / DY), P.T, P.X(z.y1 / DY) - P.X(z.y0 / DY), P.PH); });
+        c.strokeStyle = C.yellow; c.lineWidth = 1.6; c.strokeRect(P.X(rg.j0), P.T + 1, P.X(rg.j1) - P.X(rg.j0), P.PH - 2);
+        c.fillStyle = C.yellow;
+        [rg.j0, rg.j1].forEach(function (j) { c.fillRect(P.X(j) - 3, P.T + P.PH / 2 - 9, 6, 18); });
+        c.restore();
+      }
+    });
+    Views.drawChart(document.getElementById('vl'), { xmin: 0, xmax: Sim.YMAX, ymin: 0, ymax: 100, xstep: 20, xlabel: 'Y (mm)', ylabel: '%', series: [{ xs: YS, ys: rg.valid, color: '#2fd08f', width: 1.6 }], hlines: g.mode === 'auto' ? [{ y: +g.minValid, color: C.yellow, dash: [5, 4] }] : [], bands: [{ a: 0, b: rg.j0 * DY, fill: 'rgba(0,0,0,.45)' }, { a: rg.j1 * DY, b: Sim.YMAX, fill: 'rgba(0,0,0,.45)' }], vlines: [{ x: rg.j0 * DY, color: C.yellow }, { x: rg.j1 * DY, color: C.yellow }] });
+  },
+  outs: function (r) {
+    var rg = r.rg;
+    return outsTable(['Output', 'Value', ''], [['Part starts', f2(rg.j0 * DY, 1) + ' mm', stat(rg.detected ? 'ok' : 'bad')], ['Part ends', f2(rg.j1 * DY, 1) + ' mm', stat(rg.detected ? 'ok' : 'bad')], ['Length inspected', f2((rg.j1 - rg.j0) * DY, 1) + ' mm', stat('')], ['No data in the weld', f2(r.ndPct, 1) + ' %, longest ' + f2(r.ndLong, 1) + ' mm', stat(r.ndHit ? 'warn' : 'ok')]].concat(scanOuts(r)));
+  },
+  bind: function () {
+    var cv = document.getElementById('map');
+    Views.drag(cv, function (P) { return P && P.kind === 'map' ? [{ id: 'y0', x: P.X(compute().rg.j0) }, { id: 'y1', x: P.X(compute().rg.j1) }] : []; }, function (id, p, P) {
+      if (!P || S.view.dim === '3d') return rotate(p);
+      if (id === 'line') return;
+      var g = cfg().region, rg = compute().rg; g.y0 = rg.j0 * DY; g.y1 = rg.j1 * DY; g.mode = 'manual';
+      g[id] = Math.round(Sim.clamp(P.iX(p[0]), 0, NY - 1) * DY);
+      schedule();
+    }, function () { rotEnd(); render(); });
+  }
+};
+
+STEPS.locate = {
+  sketch: function () { return '<div class="sk"><b>Sample part</b><label>Shift <input type="range" data-g2="$.sim.shift" min="-10" max="10" step="1" value="' + S.sim.shift + '"><span id="shiftV">' + S.sim.shift + ' mm</span></label></div>'; },
+  layout: function () { return pane('cross', 'Profile', linePane(), 'flex:1.25 1 0') + pane('map', 'Located weld', dimSeg() + '<span class="sp"></span>' + palSeg()); },
+  panel: function () {
+    var g = cfg().locate, b = seg('locate.mode', [['max', 'Find maxima'], ['manual', 'Manual X-width']]) + '<div style="height:10px"></div>';
+    if (g.mode === 'max') b += fld('Search from', num('locate.b0', { step: 0.5 }), 'mm') + fld('Search to', num('locate.b1', { step: 0.5 }), 'mm') + fld('Find', sel('locate.find', [['peak', 'Highest point'], ['mid', 'Middle at half height']])) + fld('Width to the left', num('locate.wl', { step: 0.25, min: 0.5 }), 'mm') + fld('Width to the right', num('locate.wr', { step: 0.25, min: 0.5 }), 'mm') + fld('Follow the weld', sel('locate.track', [['line', 'On every line'], ['scan', 'Once per scan']]));
+    else b += fld('X from', num('locate.x0', { step: 0.5 }), 'mm') + fld('X to', num('locate.x1', { step: 0.5 }), 'mm');
+    var fx = g.mode === 'max' ? sec('3D Fixture', fld('Anchor windows to the weld', tog('locate.fixture', 'Anchor windows to the weld'))) : '';
+    return sec('Locate', b) + fx;
+  },
+  draw: function (r) {
+    var g = cfg().locate, lc = r.lc, j = S.line, c = lc.c[j], C = Views.C, bands = [], handles = [];
+    if (g.mode === 'max') { bands.push({ a: +g.b0, b: +g.b1, fill: 'rgba(255,255,255,.05)', stroke: 'rgba(255,210,63,.8)', dash: [5, 4] }); handles.push({ x: +g.b0 }, { x: +g.b1 }); }
+    bands.push({ a: c - lc.wl, b: c + lc.wr, fill: C.win }); handles.push({ x: c - lc.wl }, { x: c + lc.wr });
+    var tops = [{ x: c, t: 'Weld window', color: C.blue }];
+    if (g.mode === 'max') tops.push({ x: +g.b0 + 2.5, t: 'Search', color: C.yellow });
+    var vl = [{ x: c, color: C.orange, width: 1.5 }];
+    Views.drawChart(document.getElementById('cross'), crossSpec(r, j, { bands: bands, handles: handles, tops: tops, vlines: vl, markers: lc.found[j] ? [] : [] }));
+    var rr = zRange(r.z);
+    drawMapPane('map', r, { allow3d: true, fixture: { y: j * DY, x: c, z: rr[1] }, draw: function (P) {
+      overlayWindow(P, r, { centre: true }); overlayRefs(P, r);
+      var pc = P.c, X = P.X(j), Y = P.Y(c);
+      pc.save(); pc.lineWidth = 2; pc.strokeStyle = C.red; pc.beginPath(); pc.moveTo(X, Y); pc.lineTo(X + 34, Y); pc.stroke(); pc.strokeStyle = C.green; pc.beginPath(); pc.moveTo(X, Y); pc.lineTo(X, Y + 24); pc.stroke(); pc.fillStyle = C.orange; pc.beginPath(); pc.arc(X, Y, 4, 0, 6.3); pc.fill(); pc.restore();
+    } });
+  },
+  outs: function (r) {
+    var c = r.lc.c, mn = 1e9, mx = -1e9; for (var j = r.rg.j0; j <= r.rg.j1; j++) { if (c[j] < mn) mn = c[j]; if (c[j] > mx) mx = c[j]; }
+    return outsTable(['Output', 'Value', ''], [['Weld centre on this line', 'X ' + f2(c[S.line], 2) + ' mm', stat(r.lc.found[S.line] ? 'ok' : 'warn')], ['Weld found on', f2(r.lc.foundPct, 1) + ' % of lines', stat(r.lc.foundPct > 95 ? 'ok' : 'bad')], ['Weld moves between', 'X ' + f2(mn, 1) + ' to ' + f2(mx, 1) + ' mm', stat('')]].concat(scanOuts(r)));
+  },
+  bind: function () {
+    bindLine();
+    Views.drag(document.getElementById('cross'), function (P) {
+      var g = cfg().locate, lc = compute().lc, c = lc.c[S.line], h = [{ id: 'wl', x: P.X(c - lc.wl) }, { id: 'wr', x: P.X(c + lc.wr) }];
+      if (g.mode === 'max') h.push({ id: 'b0', x: P.X(+g.b0) }, { id: 'b1', x: P.X(+g.b1) });
+      return h;
+    }, function (id, p, P) {
+      if (id === 'line') return;
+      var g = cfg().locate, v = Math.round(P.iX(p[0]) * 4) / 4, c = compute().lc.c[S.line];
+      if (g.mode === 'manual') { if (id === 'wl') g.x0 = v; if (id === 'wr') g.x1 = v; }
+      else if (id === 'wl') g.wl = Math.max(0.5, c - v); else if (id === 'wr') g.wr = Math.max(0.5, v - c); else g[id] = v;
+      schedule();
+    }, function () { renderPanelOnly(); });
+    bindMapLine('map');
+  }
+};
+
+STEPS.reference = {
+  sketch: function () { return '<div class="sk"><b>Sample part</b><label>Tilt <input type="range" data-g2="$.sim.tilt" min="-5" max="5" step="0.5" value="' + S.sim.tilt + '"><span id="tiltV">' + S.sim.tilt + '°</span></label><label>Shift <input type="range" data-g2="$.sim.shift" min="-10" max="10" step="1" value="' + S.sim.shift + '"><span id="shiftV">' + S.sim.shift + ' mm</span></label></div>'; },
+  layout: function () { return pane('cross', 'Profile', linePane() + '<span class="sp"></span><span class="legend"><span><i style="background:#2fd08f"></i>Roof reference</span><span><i style="background:#a78bfa"></i>Door reference</span><span><i style="background:#ff7a45"></i>Surface at the weld</span></span>', 'flex:1.5 1 0') + pane('map', 'Windows', '<span class="sp"></span>' + palSeg()); },
+  panel: function () {
+    var g = cfg().ref, b = fld('Reference', sel('ref.mode', [['roof', 'Roof window'], ['door', 'Door window'], ['both', 'Both, checked separately'], ['line', 'Line through both'], ['golden', 'No surface: golden profile'], ['abs', 'No surface: absolute Z']]));
+    if (g.mode === 'abs') b += fld('Z zero', num('ref.absZ', { step: 0.05 }), 'mm');
+    var w = '';
+    if (g.mode !== 'abs' && g.mode !== 'golden') w = sec('Window', fld('Gap from weld', num('ref.gap', { step: 0.25, min: 0 }), 'mm') + fld('Window width', num('ref.w', { step: 0.5, min: 1 }), 'mm') + fld('Points used', num('ref.top', { step: 1, min: 10, max: 100 }), '% top') + fld('Value', '<span class="stt mut">Median</span>', '') + fld('Smooth along Y', num('ref.smooth', { step: 1, min: 0 }), 'mm'));
+    return sec('Reference Height', b) + w;
+  },
+  draw: function (r) {
+    var g = cfg().ref, lc = r.lc, j = S.line, c = lc.c[j], C = Views.C, cap = r.scan.cap, cj = r.rf.follow || lc.manual ? c : cap.c, bands = [], handles = [], tops = [], s;
+    if (g.mode !== 'abs' && g.mode !== 'golden') {
+      if (g.mode !== 'door') { bands.push({ a: cj - lc.wl - g.gap - g.w, b: cj - lc.wl - g.gap, fill: 'rgba(47,208,143,.2)' }); handles.push({ x: cj - lc.wl - g.gap - g.w }, { x: cj - lc.wl - g.gap }); tops.push({ x: cj - lc.wl - g.gap - g.w / 2, t: 'Roof', color: C.green }); }
+      if (g.mode !== 'roof') { bands.push({ a: cj + lc.wr + g.gap, b: cj + lc.wr + g.gap + g.w, fill: 'rgba(167,139,250,.2)' }); handles.push({ x: cj + lc.wr + g.gap }, { x: cj + lc.wr + g.gap + g.w }); tops.push({ x: cj + lc.wr + g.gap + g.w / 2, t: 'Door', color: C.violet }); }
+    }
+    bands.push({ a: c - lc.wl, b: c + lc.wr, fill: C.win });
+    s = crossSpec(r, j, { bands: bands, handles: handles, tops: tops, hlines: [], segs: [] });
+    refLines(r, j, s);
+    /* surface under the weld, from both sides */
+    var surf = (r.rf.rL[j] + (r.rf.rR[j] - r.rf.rL[j]) * (c - r.rf.xL[j]) / (r.rf.xR[j] - r.rf.xL[j]));
+    if (surf === surf) s.segs.push({ x0: r.rf.xL[j], x1: r.rf.xR[j], y0: r.rf.rL[j], y1: r.rf.rR[j], color: C.orange, width: 1.5 });
+    var used = g.mode === 'abs' ? +g.absZ : g.mode === 'door' ? r.rf.rR[j] : g.mode === 'roof' ? r.rf.rL[j] : g.mode === 'line' ? surf : NaN;
+    if (used === used && surf === surf) { s.segs.push({ x0: c, x1: c, y0: used, y1: surf, color: '#fff', width: 2 }); s.markers = [{ x: c, y: surf, color: C.orange, r: 4 }, { x: c, y: used, color: '#fff', r: 3 }]; }
+    if (g.mode === 'golden' && r.gd) { var xs = [], ys = []; for (var b = 0; b < r.gd.n; b++) { var u = r.gd.u0 + b * r.gd.du; xs.push(c + u); ys.push(r.gd.g[b] + r.align[j]); } s.series.push({ xs: xs, ys: ys, color: C.blue, width: 1.5 }); }
+    Views.drawChart(document.getElementById('cross'), s);
+    drawMapPane('map', r, { draw: function (P) { overlayWindow(P, r); overlayRefs(P, r); } });
+  },
+  outs: function (r) {
+    var g = cfg().ref, j = S.line, c = r.lc.c[j], rf = r.rf;
+    var surf = rf.rL[j] + (rf.rR[j] - rf.rL[j]) * (c - rf.xL[j]) / (rf.xR[j] - rf.xL[j]);
+    var used = g.mode === 'abs' ? +g.absZ : g.mode === 'door' ? rf.rR[j] : g.mode === 'roof' ? rf.rL[j] : g.mode === 'line' ? surf : NaN;
+    var rows = [];
+    if (g.mode !== 'abs' && g.mode !== 'golden') rows.push(['Roof window height', f2(rf.rL[j]) + ' mm', stat('')], ['Door window height', f2(rf.rR[j]) + ' mm', stat('')]);
+    rows.push(['Surface at the weld, from both sides', f2(surf) + ' mm', stat('')]);
+    if (used === used) rows.push(['Reference used at the weld', f2(used) + ' mm', stat('')], ['Error at the weld', f2(Math.abs(used - surf)) + ' mm', stat(Math.abs(used - surf) < 0.2 ? 'ok' : 'bad')]);
+    if (g.mode === 'both') rows.push(['Roof and door', 'Each checked on its own', stat('')]);
+    return outsTable(['Output', 'Value', ''], rows.concat(scanOuts(r)));
+  },
+  bind: function () {
+    bindLine(); bindMapLine('map');
+    Views.drag(document.getElementById('cross'), function (P) {
+      var g = cfg().ref, r = compute(), lc = r.lc, c = lc.c[S.line], cj = r.rf.follow || lc.manual ? c : r.scan.cap.c, h = [];
+      if (g.mode === 'abs' || g.mode === 'golden') return h;
+      if (g.mode !== 'door') h.push({ id: 'lo', x: P.X(cj - lc.wl - g.gap - g.w) }, { id: 'li', x: P.X(cj - lc.wl - g.gap) });
+      if (g.mode !== 'roof') h.push({ id: 'ri', x: P.X(cj + lc.wr + g.gap) }, { id: 'ro', x: P.X(cj + lc.wr + g.gap + g.w) });
+      return h;
+    }, function (id, p, P) {
+      if (id === 'line') return;
+      var g = cfg().ref, r = compute(), lc = r.lc, c = lc.c[S.line], cj = r.rf.follow || lc.manual ? c : r.scan.cap.c, v = Math.round(P.iX(p[0]) * 4) / 4;
+      if (id === 'li') g.gap = Math.max(0, cj - lc.wl - v);
+      if (id === 'ri') g.gap = Math.max(0, v - cj - lc.wr);
+      if (id === 'lo') g.w = Math.max(1, cj - lc.wl - g.gap - v);
+      if (id === 'ro') g.w = Math.max(1, v - cj - lc.wr - g.gap);
+      schedule();
+    }, function () { renderPanelOnly(); });
+  }
+};
+
+STEPS.golden = {
+  layout: function () {
+    var c = cfg();
+    return pane('gc', 'Profile against ' + (c.golden.on ? 'golden profile' : 'reference height'), linePane() + '<span class="sp"></span><span class="legend"><span><i style="background:#fff"></i>Master</span><span><i style="background:#4aa3ff"></i>Aligned</span><span><i style="background:#ff5a52"></i>Current</span><span><i style="background:rgba(255,255,255,.3);height:8px"></i>Range</span></span>', 'flex:1.3 1 0') + pane('gd', c.golden.on ? 'Difference from master' : 'Height above reference');
+  },
+  panel: function () {
+    var c = cfg(), good = Sim.SCANS.filter(function (s) { return s.exp === 'OK' && !s.hidden; });
+    return sec('Compare Against', seg('golden.on', [['false', 'Reference height'], ['true', 'Golden profile']])) +
+      sec('Good Scans', good.map(function (s) { var on = c.golden.ids.indexOf(s.id) >= 0; return '<label class="ck" style="display:flex;margin-bottom:6px"><input type="checkbox" data-good="' + s.id + '"' + (on ? ' checked' : '') + '>' + esc(s.name) + '</label>'; }).join('') + '<button type="button" class="b sm" id="buildG" style="margin-top:4px">Build Golden Profile</button>') +
+      sec('Range', (c.golden.on ? fld('Min', num('rules.height.gold.0', { step: 0.05 }), 'mm') + fld('Max', num('rules.height.gold.1', { step: 0.05 }), 'mm') : fld('Min', num('rules.height.ref.0', { step: 0.05 }), 'mm') + fld('Max', num('rules.height.ref.1', { step: 0.05 }), 'mm')));
+  },
+  draw: function (r) {
+    var c = cfg(), j = S.line, cj = r.lc.c[j], g = c.ref, C = Views.C, us = [], cur = [], curX = [], al = [], dif = [], i;
+    var uMax = 15, gd = Sim.getGolden(S.cap, c), master = [], ml = [], mh = [], gx = [], rng = c.golden.on ? c.rules.height.gold : c.rules.height.ref;
+    for (i = 0; i < NX; i++) {
+      var x = i * DX, u = x - cj, v = r.z[j * NX + i];
+      if (u < -uMax || u > uMax) continue;
+      var base = g.mode === 'golden' ? r.align[j] : g.mode === 'both' ? (r.rf.rL[j] + r.rf.rR[j]) / 2 : Sim.refAt(r.rf, g, j, x);
+      us.push(u); al.push(v - base); cur.push(r.zPeak[j * NX + i]);
+      curX.push(x - r.scan.cap.c);
+      dif.push(c.golden.on ? v - base - Sim.gAt(gd.g, u) : v - base);
+    }
+    for (var b = 0; b < gd.n; b++) { var uu = gd.u0 + b * gd.du; if (uu < -uMax || uu > uMax) continue; gx.push(uu); master.push(gd.g[b]); ml.push(gd.g[b] + +rng[0]); mh.push(gd.g[b] + +rng[1]); }
+    var fills = c.golden.on ? [{ xs: gx, lo: ml, hi: mh, fill: 'rgba(255,255,255,.12)' }] : [], hb = c.golden.on ? [] : [{ a: +rng[0], b: +rng[1], fill: 'rgba(255,255,255,.1)' }];
+    var top = Math.max.apply(null, al.filter(function (v) { return v === v; }).concat(master)) + 0.8;
+    Views.drawChart(document.getElementById('gc'), { xmin: -uMax, xmax: uMax, ymin: -0.8, ymax: Math.max(4.4, top), xstep: 5, xlabel: 'X from weld centre (mm)', ylabel: 'Z above reference (mm)', fills: fills, hbands: hb, series: [{ xs: curX, ys: cur, color: C.red, width: 1.3 }, { xs: gx, ys: master, color: '#fff', width: 1.6 }, { xs: us, ys: al, color: C.blue, width: 1.7 }] });
+    var dvals = dif.filter(function (v) { return v === v; }), lo = Math.min.apply(null, dvals.concat(+rng[0])), hi = Math.max.apply(null, dvals.concat(Math.min(+rng[1], 50)));
+    Views.drawChart(document.getElementById('gd'), { xmin: -uMax, xmax: uMax, ymin: Math.floor((lo - 0.3) * 2) / 2, ymax: Math.ceil((hi + 0.3) * 2) / 2, xstep: 5, xlabel: 'X from weld centre (mm)', ylabel: 'mm', hbands: [{ a: +rng[0], b: Math.min(+rng[1], 50), fill: 'rgba(47,208,143,.14)' }], hlines: [{ y: +rng[0], color: C.green, dash: [4, 3] }, { y: Math.min(+rng[1], 50), color: C.green, dash: [4, 3] }], series: [{ xs: us, ys: dif, color: C.blue, width: 1.7 }], bands: [{ a: -r.lc.wl, b: r.lc.wr, fill: 'rgba(255,255,255,.04)' }] });
+  },
+  outs: function (r) {
+    var c = cfg(), gd = Sim.getGolden(S.cap, c), j = S.line, w = 0, a = Math.round((r.lc.c[j] - r.lc.wl) / DX), b = Math.round((r.lc.c[j] + r.lc.wr) / DX);
+    for (var i = a; i <= b; i++) { var d = r.delta[j * NX + i]; if (d === d && Math.abs(d) > Math.abs(w)) w = d; }
+    var rng = c.golden.on ? c.rules.height.gold : c.rules.height.ref;
+    return outsTable(['Output', 'Value', ''], [['Golden profile', gd.scans + ' scans, ' + gd.lines + ' lines', stat(gd.scans ? 'ok' : 'bad')], [c.golden.on ? 'Largest difference on this line' : 'Largest value outside range on this line', f2(w) + ' mm', stat(c.golden.on ? (w >= rng[0] && w <= rng[1] ? 'ok' : 'bad') : '')]].concat(scanOuts(r)));
+  },
+  bind: function () { bindLine(); }
+};
+
+STEPS.rules = {
+  layout: function () { return pane('map', 'Defects', '<span class="sp"></span>' + palSeg()); },
+  panel: function () {
+    var c = cfg(), cmp = c.golden.on || c.ref.mode === 'golden' ? 'gold' : 'ref';
+    var mg = sec('Merge Defects', fld('Merge distance', num('merge', { step: 0.25, min: 0 }), 'mm') + sli('merge', 0, 6, 0.25));
+    var cards = ['spike', 'height', 'gap', 'spatter'].map(function (id) {
+      var x = c.rules[id], P = 'rules.' + id + '.', rg = x.where === 'beside' ? 'gold' : cmp, b = '';
+      if (id === 'gap') b += fld('Below', num(P + rg + '.0', { step: 0.1 }), 'mm');
+      else b += fld('Range', num(P + rg + '.0', { step: 0.05 }) + '<span class="u">to</span>' + num(P + rg + '.1', { step: 0.05 }), 'mm');
+      b += '<div style="margin-bottom:8px">' + seg(P + 'size', [['xy', 'X and Y'], ['area', 'Area'], ['volume', 'Volume']]) + '</div>';
+      if (x.size === 'xy') b += fld('Min X-window', num(P + 'minX', { step: 0.25, min: 0 }), 'mm') + fld('Min Y-window', num(P + 'minY', { step: 0.5, min: 0 }), 'mm');
+      if (x.size === 'area') b += fld('Min area', num(P + 'minA', { step: 0.5, min: 0 }), 'mm²');
+      if (x.size === 'volume') b += fld('Min volume', num(P + 'minV', { step: 0.5, min: 0 }), 'mm³');
+      b += fld('Defect count', tog(P + 'countOn', 'Defect count'));
+      if (x.countOn) b += fld('At least', num(P + 'countN', { step: 1, min: 1 }) , 'defects') + fld('Each at least', num(P + 'countA', { step: 0.1, min: 0 }), 'mm²');
+      var label = id === 'spatter' ? 'Spatter beside weld' : x.name;
+      return '<div class="card ' + (x.on ? '' : 'off') + '"><div class="ch">' + tog(P + 'on', label) + '<span>' + label + '</span></div><div class="cb">' + b + '</div></div>';
+    }).join('');
+    return mg + '<div style="padding-top:2px">' + cards + '</div>';
+  },
+  draw: function (r) { drawMapPane('map', r, { line: false, draw: function (P) { if (S.view.pal !== 'ref') overlayWindow(P, r); overlayBlobs(P, r, true); } }); },
+  outs: function (r) {
+    var c = cfg(), rows = [];
+    var all = allBlobs(r).sort(function (a, b) { return b.area - a.area; }), nm = { spike: 'Spike', height: 'Height', gap: 'Gap', spatter: 'Spatter' };
+    var seen = r.defects;
+    var list = all.slice(0, 40);
+    list.forEach(function (b) {
+      var x = c.rules[b.rule], why;
+      if (b.pass) why = '<span class="stt bad">NG</span>';
+      else if (x.size === 'xy') why = '<span class="stt mut">Ignored: ' + (b.xWin < +x.minX ? 'X-window under ' + x.minX + ' mm' : 'Y-window under ' + x.minY + ' mm') + '</span>';
+      else why = '<span class="stt mut">Ignored: ' + (x.size === 'area' ? 'area under ' + x.minA + ' mm²' : 'volume under ' + x.minV + ' mm³') + '</span>';
+      rows.push({ b: b, cells: [nm[b.rule], f2(b.jmin * DY, 0) + '–' + f2(b.jmax * DY, 0) + ' mm', f2(b.xWin, 2) + ' mm', f2(b.yWin, 1) + ' mm', f2(b.area, 1) + ' mm²', f2(b.vol, 1) + ' mm³', (b.peak > 0 ? '+' : '') + f2(b.peak) + ' mm', why] });
+    });
+    var cnt = (r.counts || []).map(function (k) { return '<tr><td colspan="8"><span class="stt bad">NG</span> ' + nm[k.rule] + ' defect count: ' + k.n + ' defects, limit ' + c.rules[k.rule].countN + '</td></tr>'; }).join('');
+    STEPS.rules._rows = rows;
+    var t = outsTable(['Check', 'Y', 'X-window', 'Y-window', 'Area', 'Volume', 'Largest difference', 'Decision'], rows.map(function (x) { return x.cells; }), { rowAttr: function (i) { return 'class="clk" data-blob="' + rows[i].b.jmin + '"'; } });
+    var summary = '<div style="padding:5px 10px;font-size:12.5px;display:flex;gap:14px;align-items:center;background:#fff;position:sticky;left:0"><b style="font-weight:500">' + verdictTag(r.verdict) + '</b><span class="stt mut">' + all.length + ' areas out of range, ' + r.defects.length + ' defects</span></div>';
+    return summary + (rows.length ? t.replace('</tbody>', cnt + '</tbody>') : '<div class="stt mut" style="padding:8px 10px">No area out of range</div>');
+  }
+};
+
+STEPS.nodata = {
+  layout: function () { return pane('map', 'No data', '<span class="sp"></span><span class="legend"><span><i style="background:#e87ba4;height:8px"></i>No data</span></span>', 'flex:1.3 1 0') + pane('nl', 'No data in the weld window, per line'); },
+  panel: function () {
+    var c = cfg();
+    return sec('After Gap Filling', fld('Filter in X', '<b style="font-weight:500">' + c.filter.gapX + ' mm</b>', '') + fld('Filter in Y', '<b style="font-weight:500">' + c.filter.gapY + ' mm</b>', '') + '<button type="button" class="lk" data-go="filters" style="font-size:12.5px">Filters</button>') +
+      sec('Limits', fld('Longest stretch', num('nodata.maxLen', { step: 1, min: 0 }), 'mm') + sli('nodata.maxLen', 0, 30, 1) + fld('Total in the weld', num('nodata.maxPct', { step: 1, min: 0, max: 100 }), '%')) +
+      sec('When a Limit Is Crossed', seg('nodata.action', ['Not inspected', 'NG']));
+  },
+  draw: function (r) {
+    drawMapPane('map', r, { pal: 'gray', line: false, draw: function (P) { overlayWindow(P, r); } });
+    Views.drawChart(document.getElementById('nl'), { xmin: 0, xmax: Sim.YMAX, ymin: 0, ymax: 100, xstep: 20, xlabel: 'Y (mm)', ylabel: '%', series: [{ xs: YS, ys: r.noDataLine, color: '#e87ba4', width: 1.6 }], hlines: [{ y: 50, color: Views.C.grid }] });
+  },
+  outs: function (r) {
+    var c = cfg().nodata;
+    return outsTable(['Output', 'Value', 'Limit', ''], [['Longest stretch', f2(r.ndLong, 1) + ' mm', c.maxLen + ' mm', stat(r.ndLong > +c.maxLen ? 'warn' : 'ok')], ['Total in the weld', f2(r.ndPct, 1) + ' %', c.maxPct + ' %', stat(r.ndPct > +c.maxPct ? 'warn' : 'ok')], ['Result for this scan', verdictTag(r.verdict), '', '']]);
+  }
+};
+
+STEPS.measures = {
+  layout: function () {
+    return Object.keys(cfg().measures).map(function (k) { return pane('m_' + k, esc(cfg().measures[k].name) + ' per Y'); }).join('');
+  },
+  panel: function () {
+    var c = cfg(), r = compute();
+    return Object.keys(c.measures).map(function (k) {
+      var m = c.measures[k], P = 'measures.' + k + '.', v = r.msr[k];
+      return '<div class="card ' + (m.on ? '' : 'off') + '"><div class="ch">' + tog(P + 'on', m.name) + '<span>' + esc(m.name) + '</span><span class="sp"></span><span class="cval"><i class="dot ' + (m.on ? (v.hit ? 'bad' : 'ok') : '') + '"></i><span data-mv="' + k + '">' + f2(v.val) + '</span></span></div><div class="cb">' +
+        fld('Measurement', sel(P + 'stat', ['Mean', 'Min', 'Max'])) +
+        '<div style="margin-bottom:7px">' + seg(P + 'inv', [['false', 'Normal'], ['true', 'Inverted']]) + '</div>' +
+        fld('Range Limits', num(P + 'lo', { step: 0.05 }) + '<span class="u">to</span>' + num(P + 'hi', { step: 0.05 }), m.unit) +
+        '<div style="text-align:right;margin-bottom:6px"><button type="button" class="b ghost sm" data-setmm="' + k + '">Set Min/Max</button></div></div></div>';
+    }).join('');
+  },
+  draw: function (r) {
+    var c = cfg(), C = Views.C, arrs = { crest: r.crest, width: r.width, area: r.area, pos: r.lc.c };
+    Object.keys(c.measures).forEach(function (k) {
+      var m = c.measures[k], a = arrs[k], vals = [], ys = new Float32Array(NY).fill(NaN);
+      for (var j = r.rg.j0; j <= r.rg.j1; j++) { ys[j] = a[j]; if (a[j] === a[j]) vals.push(a[j]); }
+      var lo = Math.min.apply(null, vals.concat(+m.lo)), hi = Math.max.apply(null, vals.concat(+m.hi)), pad = (hi - lo) * 0.12 || 1;
+      Views.drawChart(document.getElementById('m_' + k), { xmin: 0, xmax: Sim.YMAX, ymin: lo - pad, ymax: hi + pad, xstep: 20, ylabel: m.unit, B: 18, T: 6, hbands: m.on ? [{ a: +m.lo, b: +m.hi, fill: 'rgba(47,208,143,.12)' }] : [], hlines: m.on ? [{ y: +m.lo, color: C.green, dash: [4, 3] }, { y: +m.hi, color: C.green, dash: [4, 3] }] : [], series: [{ xs: YS, ys: ys, color: m.on && r.msr[k].hit ? C.red : C.blue, width: 1.6 }] });
+    });
+  },
+  outs: function (r) {
+    var c = cfg();
+    return outsTable(['Measure', 'Value', 'Limits', ''], Object.keys(c.measures).map(function (k) { var m = c.measures[k], v = r.msr[k]; return [esc(m.name), f2(v.val) + ' ' + m.unit, m.on ? m.lo + ' to ' + m.hi : '–', m.on ? stat(v.hit ? 'bad' : 'ok') : stat('')]; }).concat(scanOuts(r)));
+  }
+};
+
+/* capture boundary */
+function boundaryCalc() {
+  var c = cfg(), base = JSON.parse(JSON.stringify(c)); base.region.margin = 0;
+  var A = Sim.run(S.cap, 'edgeA', base, {}), B = Sim.run(S.cap, 'edgeB', base, {});
+  function near(r, end) {
+    var o = null;
+    ['spike', 'height', 'gap'].forEach(function (k) { r.rules[k].blobs.forEach(function (b) { var ok = end ? b.jmax >= r.rg.j1 - 2 : b.jmin <= r.rg.j0 + 2; if (ok && (!o || b.area > o.area)) o = b; }); });
+    return o;
+  }
+  var a = near(A, true), b = near(B, false), ov = +c.boundary.overlap || 0;
+  var ya = a ? a.yWin : 0, yb = b ? b.yWin : 0, total = Math.max(Math.max(ya, yb), ya + yb - ov);
+  var minY = +c.rules.spike.minY;
+  return { A: A, B: B, a: a, b: b, total: total, minY: minY, ng: c.boundary.merge && total >= minY, ov: ov };
+}
+STEPS.boundary = {
+  layout: function () { return pane('seam', S.captures[0].name + ' end and ' + (S.captures[1] || S.captures[0]).name + ' start', '<span class="sp"></span>' + palSeg(false)) + pane('seamp', 'Defect along Y'); },
+  panel: function () {
+    return sec('Capture Order', S.captures.map(function (x, i) { return fld((i + 1) + '.', '<b style="font-weight:500">' + esc(x.name) + '</b>', ''); }).join('')) +
+      sec('Between Captures', fld('Overlap', num('boundary.overlap', { step: 1, min: 0 }), 'mm') + fld('Merge defects across captures', tog('boundary.merge', 'Merge defects across captures')));
+  },
+  draw: function () {
+    var k = boundaryCalc(), C = Views.C, cv = document.getElementById('seam'), pal = S.view.pal === 'ref' ? 'colour' : S.view.pal, span = Math.round(26 / DY);
+    var A = k.A, B = k.B, ja = A.rg.j1, jb = B.rg.j0, f = Views.fit(cv), c = f.c, w = f.w, h = f.h, L = 44, Rr = 10, T = 8, Bt = 22, PW = w - L - Rr, PH = h - T - Bt, rr = zRange(A.z), lut = Views.LUT[pal], kk = 255 / (rr[1] - rr[0]);
+    c.fillStyle = Views.C.bg; c.fillRect(0, 0, w, h);
+    var ovl = Math.round(k.ov / DY), total = span * 2 + 4 + 0, off = document.createElement('canvas'); off.width = total; off.height = NX;
+    var ox = off.getContext('2d'), im = ox.createImageData(total, NX), p = im.data;
+    function put(col, r, j) { for (var i = 0; i < NX; i++) { var v = r.z[j * NX + i], q = (i * total + col) * 4, e = v === v ? lut[Math.max(0, Math.min(255, Math.round((v - rr[0]) * kk)))] : [232, 123, 164]; p[q] = e[0]; p[q + 1] = e[1]; p[q + 2] = e[2]; p[q + 3] = 255; } }
+    for (var x = 0; x < span; x++) put(x, A, ja - span + 1 + x);
+    for (x = 0; x < span; x++) put(span + 4 + x, B, jb + x);
+    for (x = span; x < span + 4; x++) for (var i2 = 0; i2 < NX; i2++) { var q2 = (i2 * total + x) * 4; p[q2] = p[q2 + 1] = p[q2 + 2] = 20; p[q2 + 3] = 255; }
+    ox.putImageData(im, 0, 0); c.imageSmoothingEnabled = true; c.drawImage(off, L, T, PW, PH);
+    var X = function (col) { return L + col / total * PW; }, Y = function (mm) { return T + mm / Sim.XMAX * PH; };
+    function box(b, x0, x1, col) { c.save(); c.strokeStyle = col; c.lineWidth = 2; c.strokeRect(x0, Y(b.imin * DX) - 2, x1 - x0, Y(b.imax * DX) - Y(b.imin * DX) + 4); c.restore(); }
+    if (k.a) box(k.a, X(span - (k.a.jmax - k.a.jmin + 1)) - 2, X(span) + 1, k.ng ? '#ff5a52' : C.yellow);
+    if (k.b) box(k.b, X(span + 4) - 1, X(span + 4 + (k.b.jmax - k.b.jmin + 1)) + 2, k.ng ? '#ff5a52' : C.yellow);
+    if (k.ng && k.a && k.b) { c.save(); c.strokeStyle = '#ff5a52'; c.setLineDash([4, 3]); c.lineWidth = 2; c.strokeRect(X(span - (k.a.jmax - k.a.jmin + 1)) - 7, Y(Math.min(k.a.imin, k.b.imin) * DX) - 7, X(span + 4 + (k.b.jmax - k.b.jmin + 1)) - X(span - (k.a.jmax - k.a.jmin + 1)) + 14, Y((Math.max(k.a.imax, k.b.imax) - Math.min(k.a.imin, k.b.imin)) * DX) - Y(0) + 14); c.restore(); }
+    c.font = '600 11px Outfit, sans-serif'; c.fillStyle = '#fff'; c.textAlign = 'center';
+    c.fillText(S.captures[0].name, X(span / 2), T + 14); c.fillText((S.captures[1] || S.captures[0]).name, X(span + 4 + span / 2), T + 14);
+    c.font = '11px Outfit, sans-serif'; c.fillStyle = C.tick; c.textAlign = 'right'; c.textBaseline = 'middle';
+    for (var xm = 0; xm <= 60; xm += 20) c.fillText(String(xm), L - 6, Y(xm)); c.textBaseline = 'alphabetic';
+    c.save(); c.translate(12, T + PH / 2); c.rotate(-Math.PI / 2); c.textAlign = 'center'; c.fillText('X (mm)', 0, 0); c.restore();
+    c.textAlign = 'center'; c.fillText('Last 26 mm', X(span / 2), h - 6); c.fillText('First 26 mm', X(span + 4 + span / 2), h - 6);
+    /* along-y strip of the seam */
+    var yA = k.a ? k.a.yWin : 0, yB = k.b ? k.b.yWin : 0, ov2 = k.ov, col1 = k.ng ? 'rgba(255,90,82,.6)' : 'rgba(255,210,63,.55)', col2 = k.ng ? 'rgba(255,90,82,.42)' : 'rgba(255,210,63,.32)';
+    Views.drawChart(document.getElementById('seamp'), { xmin: -10, xmax: 10, ymin: 0, ymax: 1, xstep: 2, noY: true, xlabel: 'Y from the end of ' + S.captures[0].name + ' (mm)', bands: [{ a: -yA, b: 0, fill: col1 }, { a: -ov2, b: yB - ov2, fill: col2 }, { a: -k.minY, b: -k.minY + 0.04, fill: 'rgba(47,208,143,0)' }], vlines: [{ x: 0, color: '#fff' }, { x: -ov2, color: '#fff', dash: [3, 3] }], draw: function (P) {
+      var ct = P.c; ct.font = '600 11px Outfit, sans-serif'; ct.fillStyle = '#fff'; ct.textAlign = 'center';
+      ct.fillText(S.captures[0].name, P.X(-6), P.T + 16); ct.fillText((S.captures[1] || S.captures[0]).name, P.X(6), P.T + 16);
+      var yb2 = P.T + P.PH - 16, x0 = P.X(-yA), x1 = P.X(-yA + k.minY); ct.strokeStyle = '#2fd08f'; ct.lineWidth = 2; ct.beginPath(); ct.moveTo(x0, yb2); ct.lineTo(x1, yb2); ct.stroke(); ct.fillStyle = '#2fd08f'; ct.font = '11px Outfit, sans-serif'; ct.textAlign = 'left'; ct.fillText('Min Y-window ' + k.minY + ' mm', x1 + 6, yb2 + 4);
+    } });
+  },
+  outs: function () {
+    var k = boundaryCalc(), c = cfg();
+    return outsTable(['Where', 'Y-window', 'Min Y-window', 'Result'], [
+      [esc(S.captures[0].name) + ' alone', f2(k.a ? k.a.yWin : 0, 1) + ' mm', k.minY + ' mm', verdictTag('OK')],
+      [esc((S.captures[1] || S.captures[0]).name) + ' alone', f2(k.b ? k.b.yWin : 0, 1) + ' mm', k.minY + ' mm', verdictTag('OK')],
+      ['Across the boundary', c.boundary.merge ? f2(k.total, 1) + ' mm' : 'Not checked', k.minY + ' mm', c.boundary.merge ? verdictTag(k.ng ? 'NG' : 'OK') : '<span class="stt mut">–</span>'],
+      ['Result for the cycle', '', '', verdictTag(k.ng ? 'NG' : 'OK')]
+    ]);
+  }
+};
+
+/* test on scans */
+var testRows = null, testScore = null, testTimer = null;
+function runTests(cb) {
+  clearTimeout(testTimer);
+  testTimer = setTimeout(function () {
+    var list = Sim.SCANS.filter(function (s) { return !s.hidden; }), c = cfg(), rows = [], right = 0;
+    list.forEach(function (s) {
+      var r = Sim.run(S.cap, s.id, c, {}), w = 0;
+      r.defects.forEach(function (b) { if (Math.abs(b.peak) > Math.abs(w)) w = b.peak; });
+      var ok = r.verdict === s.exp; if (ok) right++;
+      rows.push({ s: s, verdict: r.verdict, why: reasonText(r.reasons) || '–', n: r.defects.length, worst: w, nd: r.ndPct, ok: ok });
+    });
+    testRows = rows; testScore = { right: right, total: rows.length };
+    if (cb) cb();
+  }, 60);
+}
+function applyPreset(k) {
+  var d = defaultCfg(S.cap);
+  if (k === 'plan') { d.golden.on = false; d.measures.pos.on = false; }
+  if (k === 'golden') { d.measures.pos.on = false; }
+  if (k === 'all') { d.peak = 'Continuity'; d.ref.mode = 'line'; d.merge = 1.5; d.rules.spike.size = 'area'; d.rules.spike.minA = 5; d.rules.spike.countOn = true; d.rules.spatter.on = true; }
+  S.cfg[S.cap] = d; S.preset = k; lastKey = ''; fullRender();
+}
+STEPS.test = {
+  sketch: function () {
+    var o = [['plan', 'Your plan'], ['golden', 'Plan + golden profile'], ['all', 'Plan + all additions']];
+    return '<div class="sk"><b>Settings</b>' + o.map(function (x) { return '<button type="button" class="pre ' + (S.preset === x[0] ? 'on' : '') + '" data-preset="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>';
+  },
+  layout: function () { return '<div class="pane" style="background:#fff;overflow:auto"><div id="testBox"></div></div>'; },
+  panel: function () {
+    return sec('Limits', fld('Spike range', num('rules.spike.gold.0', { step: 0.05 }) + '<span class="u">to</span>' + num('rules.spike.gold.1', { step: 0.05 }), 'mm') + fld('Height range', num('rules.height.gold.0', { step: 0.05 }) + '<span class="u">to</span>' + num('rules.height.gold.1', { step: 0.05 }), 'mm') + fld('Merge distance', num('merge', { step: 0.25, min: 0 }), 'mm') + '<button type="button" class="b ghost sm" id="suggest" style="margin-top:2px">Set Limits From Good Scans</button>') +
+      sec('Show', fld('Only wrong results', tog('$.view.onlyWrong', 'Only wrong results')));
+  },
+  draw: function () {
+    runTests(function () {
+      var box = document.getElementById('testBox'); if (!box) return;
+      var list = testRows.filter(function (x) { return !S.view.onlyWrong || !x.ok; });
+      box.innerHTML = '<div style="padding:10px 14px;display:flex;gap:18px;align-items:baseline"><span class="score"><b>' + testScore.right + ' of ' + testScore.total + '</b> scans judged right</span></div>' +
+        outsTable(['Scan', 'Expected', 'Result', 'Why', 'Defects', 'Largest difference', 'No data', ''], list.map(function (x) { return [esc(x.s.name), verdictTag(x.s.exp), verdictTag(x.verdict), esc(x.why), x.n, x.n ? (x.worst > 0 ? '+' : '') + f2(x.worst) + ' mm' : '–', f2(x.nd, 1) + ' %', stat(x.ok ? 'ok' : 'bad')]; }), { rowAttr: function (i) { return 'class="clk" data-testscan="' + list[i].s.id + '"'; } });
+      renderTools(compute());
+    });
+  },
+  outs: function () { return ''; }
+};
+
+/* result */
+STEPS.result = {
+  layout: function () {
+    return pane('map', 'Reference image', '<span class="sp"></span>' + palSeg(true, 'palR'), 'flex:1.45 1 0') +
+      pane('mn', 'Minimum Z at each Y', '<span class="seg2" data-g="$.view.mm"><button type="button" data-v="raw" class="' + (S.view.mm === 'raw' ? 'on' : '') + '">Raw Z</button><button type="button" data-v="diff" class="' + (S.view.mm !== 'raw' ? 'on' : '') + '">Difference</button></span>') + pane('mx', 'Maximum Z at each Y');
+  },
+  panel: function () {
+    var r = compute();
+    var big = '<div class="big ' + (r.verdict === 'OK' ? 'ok' : r.verdict === 'NG' ? 'bad' : 'warn') + '">' + r.verdict + '</div>';
+    var nm = { spike: 'Spike', height: 'Height', gap: 'Gap', spatter: 'Spatter' };
+    var why = r.defects.length ? r.defects.map(function (b, i) { return '<tr class="clk" data-blob="' + b.jmin + '"><td>' + (i + 1) + '</td><td>' + nm[b.rule] + '</td><td>' + (b.high ? 'High' : 'Low') + '</td><td>' + f2(b.jmin * DY, 0) + '–' + f2(b.jmax * DY, 0) + '</td><td>' + (b.peak > 0 ? '+' : '') + f2(b.peak) + '</td></tr>'; }).join('') : '<tr><td colspan="5" class="stt mut">No defects</td></tr>';
+    return sec('This Capture', big + (r.ndHit ? '<div class="stt warn" style="margin-top:8px;font-size:12.5px">No data: longest ' + f2(r.ndLong, 1) + ' mm, total ' + f2(r.ndPct, 1) + ' %</div>' : '')) +
+      sec('Defects', '<table class="ot"><thead><tr><th>#</th><th>Check</th><th>Side</th><th>Y (mm)</th><th>mm</th></tr></thead><tbody>' + why + '</tbody></table>') +
+      sec('Cross-section at Y', '<div class="minic"><canvas id="rc" role="img" aria-label="Cross-section at the selected Y"></canvas></div>');
+  },
+  draw: function (r) {
+    var C = Views.C, c = cfg(), raw = S.view.mm === 'raw', mn = raw ? r.rawMin : r.dMin, mx = raw ? r.rawMax : r.dMax, rngs = c.golden.on ? c.rules.height.gold : c.rules.height.ref;
+    drawMapPane('map', r, { pal: S.view.palR, draw: function (P) { overlayBlobs(P, r, true); } });
+    var vals = []; for (var j = r.rg.j0; j <= r.rg.j1; j++) { if (mn[j] === mn[j]) vals.push(mn[j], mx[j]); }
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), pad = (hi - lo) * 0.1 || 0.5;
+    function ch(id, a) {
+      var ys = new Float32Array(NY).fill(NaN); for (var q = r.rg.j0; q <= r.rg.j1; q++) ys[q] = a[q];
+      Views.drawChart(document.getElementById(id), { xmin: 0, xmax: Sim.YMAX, ymin: lo - pad, ymax: hi + pad, xstep: 20, B: 18, T: 6, ylabel: raw ? 'Z (mm)' : 'mm', hlines: raw ? [] : [{ y: +rngs[0], color: C.green, dash: [4, 3] }, { y: Math.min(+rngs[1], 50), color: C.green, dash: [4, 3] }], series: [{ xs: YS, ys: ys, color: id === 'mn' ? C.blue : C.orange, width: 1.6 }], vlines: [{ x: S.line * DY, color: 'rgba(255,255,255,.7)' }] });
+    }
+    ch('mn', mn); ch('mx', mx);
+    var rc = document.getElementById('rc');
+    if (rc) {
+      var cj = r.lc.c[S.line], g = c.ref, us = [], ys = [], gd = Sim.getGolden(S.cap, c), gx = [], gy = [];
+      for (var i = 0; i < NX; i++) { var u = i * DX - cj; if (u < -12 || u > 12) continue; var base = g.mode === 'golden' ? r.align[S.line] : g.mode === 'both' ? (r.rf.rL[S.line] + r.rf.rR[S.line]) / 2 : Sim.refAt(r.rf, g, S.line, i * DX); us.push(u); ys.push(r.z[S.line * NX + i] - base); }
+      for (var b = 0; b < gd.n; b++) { var uu = gd.u0 + b * gd.du; if (uu < -12 || uu > 12) continue; gx.push(uu); gy.push(gd.g[b]); }
+      Views.drawChart(rc, { xmin: -12, xmax: 12, ymin: -1, ymax: 5, xstep: 4, L: 28, B: 20, series: [{ xs: gx, ys: gy, color: '#fff', width: 1.3 }, { xs: us, ys: ys, color: C.blue, width: 1.6 }] });
+    }
+  },
+  outs: function () { return ''; }
+};
+
+/* height map for other modules */
+function heightMap(r) {
+  var c = cfg().hm, out = new Float32Array(NX * NY), i, j, col = new Float32Array(NX), a = Math.round(+c.x0 / DX), b = Math.round(+c.x1 / DX);
+  for (i = 0; i < NX; i++) { var v = []; for (j = r.rg.j0; j <= r.rg.j1; j += 3) { var t = r.z[j * NX + i]; if (t === t) v.push(t); } col[i] = v.length ? Sim.median(v) : 0; }
+  var pl = 0; if (c.background === 'Planar') { var s = []; for (i = a; i <= b; i++) s.push(col[i]); pl = Sim.median(s) - 0.15; }
+  for (j = r.rg.j0; j <= r.rg.j1; j++) for (i = Math.max(0, a); i <= Math.min(NX - 1, b); i++) { var w = r.z[j * NX + i]; if (w === w) out[j * NX + i] = w - (c.background === 'Curved' ? col[i] : pl); }
+  return out;
+}
+STEPS.heightmap = {
+  layout: function () { return pane('m1', 'Reference image') + pane('m2', 'Height map'); },
+  panel: function () {
+    return sec('Height Map', fld('Source', '<span class="stt mut">Range</span>', '') + fld('Background', sel('hm.background', ['Curved', 'Planar'])) + fld('Feature height', num('hm.height', { step: 0.05, min: 0.05 }), 'mm') + fld('X from', num('hm.x0', { step: 1 }), 'mm') + fld('X to', num('hm.x1', { step: 1 }), 'mm')) +
+      sec('Send To', fld('Module', sel('hm.module', ['OCR_1', 'Code Reader_1', 'ODC_1']))) +
+      sec('Module Result', '<div style="font-size:18px;font-weight:600;letter-spacing:.04em">' + (cfg().hm.module === 'OCR_1' ? 'FR 2048' : 'Sample result') + '</div>');
+  },
+  draw: function (r) {
+    drawMapPane('m1', r, { pal: 'ref', line: false });
+    var h = heightMap(r), m = +cfg().hm.height;
+    drawMapPane('m2', r, { z: h, pal: 'gray', range: [0, m], line: false });
+  },
+  outs: function () { return ''; }
+};
+
+/* ---------- shell of the page ---------- */
+var drag3 = null;
+function rotate(p) { if (drag3) { S.view.yaw += (p[0] - drag3[0]) * 0.01; S.view.pitch = Sim.clamp(S.view.pitch + (p[1] - drag3[1]) * 0.008, 0.2, 1.5); } drag3 = p; schedule(); }
+function rotEnd() { drag3 = null; save(); }
+function bindLine() {
+  var el = document.getElementById('lineR'); if (!el) return;
+  el.addEventListener('input', function () { S.line = +el.value; schedule(); });
+}
+function bindMapLine(id) {
+  var cv = document.getElementById(id); if (!cv) return;
+  Views.drag(cv, function () { return []; }, function (i, p, P) {
+    if (S.view.dim === '3d' || !P) return rotate(p);
+    S.line = Sim.clamp(Math.round(P.iX(p[0])), 0, NY - 1); schedule();
+  }, function () { rotEnd(); });
+}
+var scheduled = false;
+function schedule() { if (scheduled) return; scheduled = true; requestAnimationFrame(function () { scheduled = false; refresh(); }); }
+function refresh() {
+  var st = STEPS[STATE], r = compute();
+  if (S.line === undefined) S.line = interesting(scanId());
+  st.draw(r);
+  var lv = document.getElementById('lineV'); if (lv) lv.textContent = f2(S.line * DY, 1) + ' mm';
+  var lr = document.getElementById('lineR'); if (lr && +lr.value !== S.line) lr.value = S.line;
+  var o = document.getElementById('outs');
+  if (o) { var h = st.outs(r); o.innerHTML = h; o.hidden = !h; }
+  document.querySelectorAll('[data-mv]').forEach(function (e) { e.textContent = f2(r.msr[e.getAttribute('data-mv')].val); });
+  renderTools(r);
+  save();
+}
+function renderPanelOnly() { var p = document.getElementById('pscroll'); if (p) { var t = p.scrollTop; p.innerHTML = STEPS[STATE].panel(); p.scrollTop = t; } }
+function fullRender() {
+  var t = document.getElementById('pscroll'), keep = t ? t.scrollTop : 0;
+  render();
+  var p = document.getElementById('pscroll'); if (p) p.scrollTop = keep;
+}
+
+function render() {
+  var st = STEPS[STATE] || STEPS.laser, cur = scanId(), list = Sim.SCANS.filter(function (s) { return !s.hidden; }), idx = list.map(function (s) { return s.id; }).indexOf(cur);
+  var ids = TOOLS.map(function (t) { return t[0]; }), at = ids.indexOf(STATE), prev = ids[at - 1], next = ids[at + 1];
+  var scanSel = STATE === 'boundary' || STATE === 'test' || STATE === 'heightmap' ? '' :
+    '<span class="rep"><button type="button" class="ic" id="scPrev" aria-label="Previous scan"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><select class="ip" id="scSel" aria-label="Scan"' + (S.view.replay ? '' : ' disabled') + '>' + (S.view.replay ? list.map(function (s) { return '<option value="' + s.id + '"' + (s.id === cur ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') : '<option>Live: waiting for trigger</option>') + '</select><button type="button" class="ic" id="scNext" aria-label="Next scan"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button><span class="cnt">' + (idx + 1) + ' / ' + list.length + '</span></span>';
+  var replay = STATE === 'boundary' || STATE === 'test' || STATE === 'heightmap' ? '' : '<label class="tog" style="font-size:13px"><span>Replay</span><input type="checkbox" aria-label="Replay" data-k="$.view.replay"' + (S.view.replay ? ' checked' : '') + '><i></i></label>';
+  var chips = (CHIPS[STATE] || []).length ? '<div class="chips"><span class="l">Sample scans</span>' + CHIPS[STATE].map(function (id) { var m = scanMeta(id); return '<button type="button" class="chip ' + (id === cur ? 'on' : '') + '" data-chip="' + id + '">' + esc(m.name) + '<span class="ex">' + esc(m.exp) + '</span></button>'; }).join('') + '</div>' : '';
+  document.getElementById('app').innerHTML = railHtml('ic-capture', true, false) +
+    '<div class="main"><div class="hd"><div class="crumbs"><span class="c">Instances</span><span class="sep">/</span><span class="c">Inferencing Customization</span><span class="sep">/</span><span>3D Setup</span></div><span id="modeSwitch" hidden></span></div>' +
+    '<div class="bar3"><select class="ip" aria-label="Instance"><option>' + esc(S.instanceName) + '</option></select><select class="ip" aria-label="Variant"><option>' + esc(S.variant) + '</option></select>' +
+    '<div class="tabs" role="tablist">' + S.captures.map(function (x) { return '<button type="button" class="tab ' + (x.id === S.cap ? 'on' : '') + '" role="tab" data-cap="' + x.id + '">' + esc(x.name) + '</button>'; }).join('') + '</div><span class="sp"></span>' + scanSel + replay + '</div>' +
+    '<div class="body"><aside class="tools" id="tools"></aside><div class="cen">' + (st.sketch ? st.sketch() : '') + chips + '<div class="panes" id="panes">' + st.layout() + '</div><div class="outs" id="outs"></div></div>' +
+    '<aside class="panel"><div class="pscroll" id="pscroll">' + st.panel() + '</div><div class="pfoot"><button type="button" class="b ghost" data-go="' + (prev || '') + '"' + (prev ? '' : ' disabled') + '>Back</button><button type="button" class="b" data-go="' + (next || '') + '"' + (next ? '' : ' disabled') + '>Save and Next</button></div></aside></div></div>';
+  if (S.line === undefined) S.line = interesting(cur);
+  if (st.bind) st.bind();
+  else { bindLine(); if (document.getElementById('map')) bindMapLine('map'); }
+  refresh();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('input', function (e) {
+  var k = e.target.getAttribute && e.target.getAttribute('data-k');
+  if (k && (e.target.type === 'number' || e.target.type === 'range')) {
+    var v = parseFloat(e.target.value); if (v !== v) return;
+    sv(k, v); S.preset = null;
+    document.querySelectorAll('[data-k="' + k + '"]').forEach(function (o) { if (o !== e.target) o.value = v; });
+    schedule();
+  } else if (k && e.target.type === 'text') { sv(k, e.target.value); save(); }
+  var g2 = e.target.getAttribute && e.target.getAttribute('data-g2');
+  if (g2) {
+    var n = parseFloat(e.target.value); sv(g2, n);
+    var a = document.getElementById('shiftV'), b = document.getElementById('tiltV');
+    if (a) a.textContent = S.sim.shift + ' mm'; if (b) b.textContent = S.sim.tilt + '°';
+    schedule();
+  }
+});
+document.addEventListener('change', function (e) {
+  var t = e.target, k = t.getAttribute && t.getAttribute('data-k');
+  if (t.id === 'scSel') return setScan(t.value);
+  if (t.getAttribute && t.getAttribute('data-good')) {
+    var ids = cfg().golden.ids, id = t.getAttribute('data-good'), at = ids.indexOf(id);
+    if (t.checked && at < 0) ids.push(id); if (!t.checked && at >= 0) ids.splice(at, 1);
+    schedule(); return;
+  }
+  if (!k) return;
+  if (t.type === 'checkbox') sv(k, t.checked);
+  else if (t.tagName === 'SELECT') { sv(k, t.value); if (k === 'hdr') { S.hdrBy = S.hdrBy || {}; S.hdrBy[S.cap] = t.value; } }
+  else return;
+  fullRender();
+});
+document.addEventListener('click', function (e) {
+  var t = e.target, b;
+  if ((b = t.closest('[data-go]'))) { var g = b.getAttribute('data-go'); if (g) { save(); goToStep(g); } return; }
+  if ((b = t.closest('[data-seg] button'))) {
+    var p = b.parentNode.getAttribute('data-seg'), v = b.getAttribute('data-v');
+    sv(p, v === 'true' ? true : v === 'false' ? false : v); fullRender(); return;
+  }
+  if ((b = t.closest('[data-g] button'))) { sv(b.parentNode.getAttribute('data-g'), b.getAttribute('data-v')); fullRender(); return; }
+  if ((b = t.closest('[data-preset]'))) { applyPreset(b.getAttribute('data-preset')); return; }
+  if ((b = t.closest('[data-chip]'))) { setScan(b.getAttribute('data-chip')); return; }
+  if ((b = t.closest('[data-cap]'))) { S.cap = b.getAttribute('data-cap'); capCfg(S.cap); lastKey = ''; testRows = null; testScore = null; S.line = undefined; save(); render(); return; }
+  if ((b = t.closest('[data-scan]'))) { setScan(b.getAttribute('data-scan')); return; }
+  if ((b = t.closest('[data-testscan]'))) { S.scanByStep.result = b.getAttribute('data-testscan'); S.line = interesting(S.scanByStep.result); save(); goToStep('result'); return; }
+  if ((b = t.closest('[data-blob]'))) { S.line = +b.getAttribute('data-blob') + 2; schedule(); return; }
+  if ((b = t.closest('[data-setmm]'))) { var k = b.getAttribute('data-setmm'), m = cfg().measures[k], vv = compute().msr[k].med; m.lo = +(vv * 0.95).toFixed(2); m.hi = +(vv * 1.05).toFixed(2); m.on = true; fullRender(); return; }
+  if ((b = t.closest('[data-delzone]'))) { cfg().region.ignore.splice(+b.getAttribute('data-delzone'), 1); fullRender(); return; }
+  if (t.id === 'addZone') { cfg().region.ignore.push({ y0: 80, y1: 90 }); fullRender(); return; }
+  if (t.id === 'scPrev' || t.closest('#scPrev') || t.id === 'scNext' || t.closest('#scNext')) {
+    var l = Sim.SCANS.filter(function (s) { return !s.hidden; }), i = l.map(function (s) { return s.id; }).indexOf(scanId()), d = t.closest('#scPrev') ? -1 : 1;
+    setScan(l[(i + d + l.length) % l.length].id); return;
+  }
+  if (t.id === 'buildG') { lastKey = ''; fullRender(); return; }
+  if (t.id === 'takeBtn') {
+    var pr = document.getElementById('prog'), bar = pr.firstChild; pr.hidden = false; t.disabled = true; t.textContent = 'Scanning…';
+    var st = Date.now(), iv = setInterval(function () { var q = (Date.now() - st) / 1500; bar.style.width = Math.min(100, q * 100) + '%'; if (q >= 1) { clearInterval(iv); S.taken++; fullRender(); } }, 50);
+    return;
+  }
+  if (t.id === 'suggest') {
+    var c = cfg(), max = 0;
+    c.golden.ids.forEach(function (id) { var r = Sim.run(S.cap, id, c, {}); for (var q = 0; q < r.delta.length; q++) { var a = Math.abs(r.delta[q]); if (a === a && a > max && a < 3) max = a; } });
+    var h = Math.round(max * 1.3 * 20) / 20, sp = Math.round(max * 2.2 * 20) / 20;
+    c.rules.height.gold = [-h, h]; c.rules.spike.gold = [-sp, sp];
+    fullRender(); return;
+  }
+});
+window.addEventListener('resize', function () { schedule(); });
+
+/* the 3D view rotates wherever a height map pane is shown */
+capCfg(S.cap);
+S.line = interesting(scanId());
+render();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { schedule(); });
+</script>
+</body>
+</html>
